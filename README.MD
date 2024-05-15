@@ -67,7 +67,7 @@
    routers_list = [
        admin_router,
        user_router,
-       echo_router,  # echo_router должен быть последним
+       echo_router,
    ]
    ```
 5. В файле `bot.py` подключите хэндлеры к вашему боту:
