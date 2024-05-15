@@ -58,9 +58,7 @@
    ```
 4. Добавьте все роутеры в файл `handlers/__init__.py`:
    ```python
-   from .admin import
-
- admin_router
+   from .admin import admin_router
    from .echo import echo_router
    from .user import user_router
    
