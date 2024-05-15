@@ -1,4 +1,4 @@
-### [SamuraiCoding](https://t.me/big_balls_birds)
+### [SamuraiCoding](https://t.me/Samurai_Coding)
 
 ---
 
