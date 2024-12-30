@@ -19,6 +19,7 @@ from tgbot.utils.payment_utils import generate_payment_link
 user_router = Router()
 
 user_router.message.filter(IsPrivateFilter())
+user_router.callback_query.filter(IsPrivateFilter())
 
 @user_router.message(F.content_type.in_({"photo", "video", "animation", "document", "video_note"}))
 async def send_media(message: Message, state: FSMContext):
