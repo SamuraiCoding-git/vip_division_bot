@@ -32,5 +32,5 @@ class Order(Base, TimestampMixin, TableNameMixin):
 
     def __repr__(self):
         return (
-            f"<Order {self.id} User: {self.user_id} Plan: {self.plan_id} Total: {self.total_price} Status: {self.status}>"
+            f"<Order {self.id} User: {self.user_id} Plan: {self.plan_id} Total: {self.total_price} Status: {self.is_paid}>"
         )
