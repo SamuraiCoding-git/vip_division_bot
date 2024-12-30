@@ -12,6 +12,7 @@ from schedulers.base import setup_scheduler
 from tgbot.config import load_config, Config
 from tgbot.handlers import routers_list
 from tgbot.middlewares.config import ConfigMiddleware
+from tgbot.middlewares.database import DatabaseMiddleware
 from tgbot.middlewares.scheduler import SchedulerMiddleware
 from tgbot.services import broadcaster
 
@@ -49,8 +50,8 @@ def register_global_middlewares(dp: Dispatcher, config: Config, scheduler, sessi
     """
     middleware_types = [
         ConfigMiddleware(config),
-        SchedulerMiddleware(scheduler)
-        # DatabaseMiddleware(session_pool),
+        SchedulerMiddleware(scheduler),
+        DatabaseMiddleware(session_pool),
     ]
 
     for middleware_type in middleware_types:
