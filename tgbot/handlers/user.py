@@ -438,11 +438,12 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         order = await repo.orders.get_latest_paid_order_by_user(chat_id)
+        plan = await repo.plans.select_plan(order.plan_id)
 
         if order:
             try:
                 # Calculate days remaining
-                duration_days = int(order.plan.duration[:-5])  # Extract duration as integer
+                duration_days = int(plan.duration[:-5])  # Extract duration as integer
                 end_date = order.start_date + timedelta(days=duration_days)
                 days_remaining = max((end_date - datetime.utcnow()).days, 0)
             except ValueError:

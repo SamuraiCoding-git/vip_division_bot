@@ -14,12 +14,6 @@ class Plan(Base, TimestampMixin, TableNameMixin):
 
     users: Mapped[list["User"]] = relationship("User", back_populates="plan")
 
-    def get_duration_in_days(self) -> int:
-        """
-        Returns the duration string without the last five characters.
-        """
-        return int(self.duration[:-5])
-
     def __repr__(self):
         return (
             f"<Plan {self.id} {self.name} {self.original_price} {self.discounted_price} {self.duration}>"
