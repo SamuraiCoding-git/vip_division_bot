@@ -93,7 +93,7 @@ class OrderRepo:
         """
         result = await self.session.execute(
             select(Order)
-            .filter(Order.id == user_id, Order.is_paid == True)
+            .filter(Order.user_id == user_id, Order.is_paid == True)
             .order_by(Order.start_date.desc())
         )
         return result.scalar_one_or_none()
