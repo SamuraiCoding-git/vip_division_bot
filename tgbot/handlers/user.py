@@ -495,7 +495,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
 
     if plan.discounted_price != plan.original_price:
         discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
-        price_text = f"<b>Стоимость:</b> <s>{plan.original_price} ₽</s> {plan.discounted_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
+        price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
 
