@@ -138,6 +138,11 @@ async def user_start(message: Message, config: Config, state: FSMContext):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         user = await repo.users.select_user(message.from_user.id)
+        await repo.users.get_or_create_user(
+            message.from_user.id,
+            message.from_user.full_name,
+            message.from_user.username
+        )
 
     await delete_messages(bot=message.bot, chat_id=message.chat.id, state=state)
 
