@@ -544,7 +544,7 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
     await delete_messages(bot=call.bot, chat_id=call.message.chat.id, state=state)
 
     if callback_data.state == "menu":
-        photo = "AgACAgIAAxkBAAOPZ26AYNw9lZjk2k1k-IBs56dkjMAAAiroMRsF63FLEefvEx9fyYQBAAMCAAN5AAM2BA"
+        photo = "AgACAgIAAxkBAALEjmdy0mrTJ-bx2nlZDWMhqBbBV8jKAAKX6TEbOoaJSzj3KXBj1mmtAQADAgADeQADNgQ"
         new_message = await call.message.answer_photo(photo, reply_markup=menu_keyboard())
         await bot.pin_chat_message(call.message.chat.id, new_message.message_id)
         await state.update_data(message_ids=[new_message.message_id])
