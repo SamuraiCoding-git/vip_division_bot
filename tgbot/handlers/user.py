@@ -550,8 +550,8 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
         await state.update_data(message_ids=[new_message.message_id])
     elif callback_data.state == "how_chat_works":
         media_group = [
-            InputMediaPhoto(media="AgACAgIAAxkBAAOeZ26OqRdF1LlEB07srUhgtArCpL0AAqnoMRsF63FL0m37h58myKIBAAMCAAN5AAM2BA"),
-            InputMediaVideo(media="BAACAgIAAxkBAAOcZ26OYr8vSSYx-dBjd85l_TaFqOIAAopmAAIF63FLQJ6nb_Akmt02BA"),
+            InputMediaPhoto(media="AgACAgIAAxkBAAIs-WdVrJiz3J4cVEHjerodiRRYH6bXAAJq5DEbTXapSuHtzkxwLB-WAQADAgADeQADNgQ"),
+            InputMediaVideo(media="BAACAgIAAxkBAAIs-mdVrJgeZZ3gDm-tkwUOcmkUjmtpAALlWAACTXapSn9ubO3gLOtANgQ"),
         ]
         sent_media = await call.message.answer_media_group(media_group)
         message_ids = [msg.message_id for msg in sent_media]
