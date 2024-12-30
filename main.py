@@ -92,6 +92,8 @@ async def process_request():
         if not order_id:
             raise ValueError('Order ID not provided')
 
+        print(order_id)
+
         # Создание пула сессий базы данных
         session_pool = await create_session_pool(config.db)
 
