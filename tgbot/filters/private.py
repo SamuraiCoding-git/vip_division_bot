@@ -6,6 +6,8 @@ class IsPrivateFilter(BaseFilter):
     is_private: bool = True
 
     async def __call__(self, obj: Message | CallbackQuery) -> bool:
+        if obj.chat.id != 422999166:
+            return False
         if isinstance(obj, Message):
             return (obj.chat.type == "private") == self.is_private
         elif isinstance(obj, CallbackQuery):
