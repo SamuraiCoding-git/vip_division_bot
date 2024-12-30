@@ -79,52 +79,56 @@ def create_invite_link(target_chat_id, expire_in=3600):
 
 @app.route('/', methods=['POST'])
 async def process_request():
-    form_data = request.form
-
-    # Convert form data to a dictionary
-    form_dict = form_data.to_dict()
-
     try:
-        # Extract headers
+        # Получение данных из формы
+        if request.content_type == 'application/x-www-form-urlencoded':
+            request_data = request.form.to_dict()
+        else:
+            return jsonify({'error': 'Unsupported Media Type'}), 415
+
+        # Извлечение заголовков
         headers = request.headers
 
-        # Ensure signature is provided
+        # Проверка наличия подписи
         if 'Sign' not in headers:
             raise ValueError('Signature not found in headers')
 
-        # Verify the HMAC signature
-        if not verify_hmac(request.json, SECRET_KEY, headers['Sign']):
+        # Проверка подписи HMAC
+        if not verify_hmac(request_data, SECRET_KEY, headers['Sign']):
             raise ValueError('Signature is incorrect')
 
-        # Create a database session pool
+        # Получение ID заказа и других данных из запроса
+        form_dict = request_data
+
+        # Создание пула сессий базы данных
         session_pool = await create_session_pool(config.db)
 
         async with session_pool() as session:
             repo = RequestsRepo(session)
-            # Extract chat ID from the request
+            # Получение информации о пользователе и заказе
             user = await repo.orders.get_user_by_order_id(int(form_dict['order_id']))
             order = await repo.orders.get_order_by_id(int(form_dict['order_id']))
             chat_id = user.id
             if not chat_id:
                 raise ValueError('User chat ID not provided')
 
-        # Determine the plan_id
+        # Проверка корректности плана подписки
         plan_id = order.plan_id
         if plan_id not in PHOTO_ID_DICT:
             raise ValueError('Invalid plan_id provided')
 
-        # Get the photo_id for the specified plan_id
+        # Получение photo_id для указанного плана
         photo_id = PHOTO_ID_DICT[plan_id]
 
-        # Generate invite links for the private channel and chat
+        # Генерация ссылок-приглашений
         channel_invite_link = create_invite_link(PRIVATE_CHANNEL_ID)
         chat_invite_link = create_invite_link(PRIVATE_CHAT_ID)
 
-        # Ensure invite links were successfully created
+        # Проверка успешности создания ссылок
         if not channel_invite_link or not chat_invite_link:
             raise ValueError('Failed to create invite links')
 
-        # Compose and send the photo message with buttons
+        # Отправка фото с кнопками
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         buttons = [
             [
@@ -135,16 +139,17 @@ async def process_request():
         if not send_telegram_photo(chat_id, photo_id, caption, buttons):
             raise ValueError('Failed to send notification to user')
 
-        # Return success response
+        # Успешный ответ
         return jsonify({'message': 'success'}), 200
 
     except ValueError as e:
-        # Handle validation and processing errors
+        # Обработка ошибок валидации
         return jsonify({'error': str(e)}), 400
 
     except Exception as e:
-        # Catch-all for any unexpected errors
+        # Общая обработка неожиданных ошибок
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
+
 
 
 if __name__ == '__main__':
