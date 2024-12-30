@@ -80,11 +80,12 @@ def create_invite_link(target_chat_id, expire_in=3600):
 @app.route('/', methods=['POST'])
 async def process_request():
     try:
-        # Получение данных из формы
-        if request.content_type == 'application/x-www-form-urlencoded':
-            request_data = request.form.to_dict()
-        else:
-            return jsonify({'error': 'Unsupported Media Type'}), 415
+        # Извлечение данных из формы
+        form_data = request.form
+        form_dict = form_data.to_dict()
+
+        # Логирование полученных данных
+        print(f"Form data: {form_dict}")
 
         # Извлечение заголовков
         headers = request.headers
@@ -94,11 +95,13 @@ async def process_request():
             raise ValueError('Signature not found in headers')
 
         # Проверка подписи HMAC
-        if not verify_hmac(request_data, SECRET_KEY, headers['Sign']):
+        if not verify_hmac(form_dict, SECRET_KEY, headers['Sign']):
             raise ValueError('Signature is incorrect')
 
         # Получение ID заказа и других данных из запроса
-        form_dict = request_data
+        order_id = form_dict.get('order_id')
+        if not order_id:
+            raise ValueError('Order ID not provided')
 
         # Создание пула сессий базы данных
         session_pool = await create_session_pool(config.db)
@@ -106,8 +109,8 @@ async def process_request():
         async with session_pool() as session:
             repo = RequestsRepo(session)
             # Получение информации о пользователе и заказе
-            user = await repo.orders.get_user_by_order_id(int(form_dict['order_id']))
-            order = await repo.orders.get_order_by_id(int(form_dict['order_id']))
+            user = await repo.orders.get_user_by_order_id(int(order_id))
+            order = await repo.orders.get_order_by_id(int(order_id))
             chat_id = user.id
             if not chat_id:
                 raise ValueError('User chat ID not provided')
@@ -132,7 +135,9 @@ async def process_request():
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         buttons = [
             [
-                {"text": "🔺 ВСТУПИТЬ В КАНАЛ", "url": channel_invite_link},
+                {"text": "🔺 ВСТУПИТЬ В КАНАЛ", "url": channel_invite_link}
+            ],
+            [
                 {"text": "🔺 ВСТУПИТЬ В ЧАТ", "url": chat_invite_link}
             ]
         ]
