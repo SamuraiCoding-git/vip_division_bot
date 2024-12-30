@@ -194,15 +194,29 @@ def assistant_keyboard(state: str):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def my_subscription_keyboard(state: str):
-    buttons = [
-        [
-            InlineKeyboardButton(text="✔️ ТАРИФЫ", callback_data="view_tariffs"),
-        ],
-        [
-            InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
-        ],
-    ]
+def my_subscription_keyboard(state: str, is_sub=False, chat_link=None, channel_link=None):
+    if is_sub:
+        buttons = [
+            [
+                InlineKeyboardButton(text="🔺ВСТУПИТЬ В КАНАЛ", url=channel_link),
+            ],
+            [
+                InlineKeyboardButton(text="🔺ВСТУПИТЬ В ЧАТ", url=chat_link),
+
+            ],
+            [
+                InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
+            ],
+        ]
+    else:
+        buttons = [
+            [
+                InlineKeyboardButton(text="✔️ ТАРИФЫ", callback_data="view_tariffs"),
+            ],
+            [
+                InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
+            ],
+        ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def guide_keyboard(state: str):
@@ -306,7 +320,7 @@ def pay_keyboard(payment_link, state):
         [
             InlineKeyboardButton(
                 text="ОПЛАТИТЬ КРИПТОЙ USDT (TRC 20)",
-                callback_data="pay_crypto"
+                url="https://t.me/vipdivision"
             )
         ],
         [

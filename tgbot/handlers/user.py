@@ -6,6 +6,7 @@ from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVid
 
 from infrastructure.database.repo.requests import RequestsRepo
 from infrastructure.database.setup import create_session_pool
+from main import create_invite_link
 from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallbackData, GuidesCallbackData, \
@@ -443,6 +444,8 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
         plan = await repo.plans.select_plan(order.plan_id)
 
         if order:
+            PRIVATE_CHANNEL_ID = '-1001677058959'
+            PRIVATE_CHAT_ID = '-1002008772427'
             try:
                 # Calculate days remaining
                 duration_days = int(plan.duration[:-5])  # Extract duration as integer
@@ -452,13 +455,17 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
                 days_remaining = 0
         else:
             days_remaining = 0
-
         # Prepare the message text based on subscription status
         if days_remaining > 0:
             text = (
                 f"У тебя активная подписка! 🎉\n\n"
                 f"Осталось дней: {days_remaining} дней.\n"
             )
+            sent_message = await bot.send_message(chat_id=chat_id, text=text,
+                                                  reply_markup=my_subscription_keyboard(state="menu",
+                                                                                        is_sub=True,
+                                                                                        chat_link=create_invite_link(PRIVATE_CHAT_ID),
+                                                                                        channel_link=create_invite_link(PRIVATE_CHANNEL_ID)))
         else:
             text = (
                 "У тебя нет активных подписок ⌛\n\n"
@@ -466,8 +473,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
             )
 
         # Send the message
-        sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard("menu"))
-
+            sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard(state="menu"))
     # Update state with the message ID for tracking
     await state.update_data(message_ids=[sent_message.message_id])
 
