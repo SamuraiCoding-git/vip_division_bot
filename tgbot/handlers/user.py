@@ -1,6 +1,7 @@
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
+from datetime import datetime, timedelta
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo
 
 from infrastructure.database.repo.requests import RequestsRepo
@@ -432,29 +433,37 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     # Delete previous messages
     await delete_messages(bot=bot, chat_id=chat_id, state=state)
 
+    # Create a database session and handle the logic
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
-        repo = RequestsRepo(session)  # Pass the session to the repository
+        repo = RequestsRepo(session)
         order = await repo.orders.get_latest_paid_order_by_user(chat_id)
 
-    print(order)
-    # print(order.get_days_remaining())
+        if order:
+            try:
+                # Calculate days remaining
+                duration_days = int(order.plan.duration[:-5])  # Extract duration as integer
+                end_date = order.start_date + timedelta(days=duration_days)
+                days_remaining = max((end_date - datetime.utcnow()).days, 0)
+            except ValueError:
+                days_remaining = 0
+        else:
+            days_remaining = 0
 
-    if order and order.get_days_remaining() > 0:
-        # Active subscription exists
-        days_remaining = order.get_days_remaining()
-        text = (
-            f"У тебя активная подписка! 🎉\n\n"
-            f"Осталось дней: {days_remaining} дней.\n"
-        )
-    else:
-        text = (
-            "У тебя нет активных подписок ⌛\n\n"
-            "Ознакомьтесь с тарифами, нажав на соответствующую кнопку"
-        )
+        # Prepare the message text based on subscription status
+        if days_remaining > 0:
+            text = (
+                f"У тебя активная подписка! 🎉\n\n"
+                f"Осталось дней: {days_remaining} дней.\n"
+            )
+        else:
+            text = (
+                "У тебя нет активных подписок ⌛\n\n"
+                "Ознакомьтесь с тарифами, нажав на соответствующую кнопку"
+            )
 
-    # Send the message
-    sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard("menu"))
+        # Send the message
+        sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard("menu"))
 
     # Update state with the message ID for tracking
     await state.update_data(message_ids=[sent_message.message_id])
