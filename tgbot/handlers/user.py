@@ -24,6 +24,8 @@ user_router.callback_query.filter(IsPrivateFilter())
 
 @user_router.message(F.content_type.in_({"photo", "video", "animation", "document", "video_note"}))
 async def send_media(message: Message, state: FSMContext):
+    if message.from_user.id != 422999166:
+        return
     data = await state.get_data()
     message_ids = data.get("message_ids", [])
     message_ids.append(message.message_id)
