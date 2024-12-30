@@ -438,7 +438,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
         order = await repo.orders.get_latest_paid_order_by_user(chat_id)
 
     print(order)
-    print(order.get_days_remaining())
+    # print(order.get_days_remaining())
 
     if order and order.get_days_remaining() > 0:
         # Active subscription exists
