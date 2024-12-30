@@ -99,6 +99,7 @@ async def process_request():
 
         # Проверка корректности плана подписки
         order = await repo.orders.get_order_by_id(int(form_dict['order_num']))
+        await repo.orders.update_order_payment_status(int(form_dict['order_num']), True)
         plan_id = order.plan_id
         if plan_id not in PHOTO_ID_DICT:
             raise ValueError('Invalid plan_id provided')
