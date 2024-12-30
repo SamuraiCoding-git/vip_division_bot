@@ -140,7 +140,7 @@ async def main():
 
     scheduler = setup_scheduler(bot, config, storage, session_pool)
 
-    register_global_middlewares(dp, config, scheduler)
+    register_global_middlewares(dp, config, scheduler, session_pool)
 
     await create_session_pool(config.db)
     await set_bot_commands(bot)
