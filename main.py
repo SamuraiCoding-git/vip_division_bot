@@ -64,7 +64,7 @@ def create_invite_link(target_chat_id, expire_in=3600):
 
 @app.route('/', methods=['POST'])
 async def process_request():
-    print(request.data)
+    print(request.get_json())
     try:
         # Extract headers
         headers = request.headers
