@@ -51,7 +51,7 @@ def register_global_middlewares(dp: Dispatcher, config: Config, scheduler, sessi
     middleware_types = [
         ConfigMiddleware(config),
         SchedulerMiddleware(scheduler),
-        # DatabaseMiddleware(session_pool),
+        DatabaseMiddleware(session_pool),
     ]
 
     for middleware_type in middleware_types:
