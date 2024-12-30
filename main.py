@@ -64,7 +64,13 @@ def create_invite_link(target_chat_id, expire_in=3600):
 
 @app.route('/', methods=['POST'])
 async def process_request():
-    print(request.content_type)
+    form_data = request.form
+
+    # Convert form data to a dictionary
+    form_dict = form_data.to_dict()
+
+    # Print and return the form data
+    print("Form Data:", form_dict)
     try:
         # Extract headers
         headers = request.headers
