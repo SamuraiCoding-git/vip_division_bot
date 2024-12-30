@@ -99,7 +99,7 @@ async def process_request():
                 raise ValueError('User chat ID not provided')
 
         # Проверка корректности плана подписки
-        order = await repo.orders.get_latest_paid_order_by_user(chat_id)
+        order = await repo.orders.get_order_by_id(int(form_dict['order_num']))
         plan_id = order.plan_id
         if plan_id not in PHOTO_ID_DICT:
             raise ValueError('Invalid plan_id provided')
