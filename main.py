@@ -16,6 +16,13 @@ PRIVATE_CHANNEL_ID = '-1001677058959'  # Replace with your private channel's ID
 PRIVATE_CHAT_ID = '-1002008772427'  # Replace with your private chat's ID
 config = load_config(".env")
 
+# Define photo IDs for each plan
+PHOTO_ID_DICT = {
+    1: "AgACAgIAAxkBAALEjGdy0mrDQWi18wFpYoZq9NVA2TqjAAKV6TEbOoaJS4n3s7ggUnRgAQADAgADeQADNgQ",  # Replace with actual photo_id for plan 1
+    2: "AgACAgIAAxkBAALEimdy0mogvij5Ftf2H8gl35umq8q3AAKS6TEbOoaJSyo0D53HGSccAQADAgADeQADNgQ",  # Replace with actual photo_id for plan 2
+    4: "AgACAgIAAxkBAALEi2dy0mq9sEozgl_G_TSMMQTr6Xv4AAKT6TEbOoaJS3CNhv-ILUFiAQADAgADeQADNgQ"   # Replace with actual photo_id for plan 3
+}
+
 
 def create_hmac(data, key, algo='sha256'):
     try:
@@ -32,14 +39,22 @@ def verify_hmac(data, key, sign, algo='sha256'):
     return calculated_sign and calculated_sign.lower() == sign.lower()
 
 
-def send_telegram_message(chat_id, message):
+def send_telegram_photo(chat_id, photo_id, caption, buttons=None):
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {"chat_id": chat_id, "text": message}
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+        payload = {
+            "chat_id": chat_id,
+            "photo": photo_id,
+            "caption": caption,
+            "parse_mode": "HTML"  # Optional: For formatting the message
+        }
+        if buttons:
+            payload["reply_markup"] = json.dumps({"inline_keyboard": buttons})
+
         response = requests.post(url, json=payload)
         return response.ok
     except Exception as e:
-        print(f"Failed to send message: {e}")
+        print(f"Failed to send photo: {e}")
         return False
 
 
@@ -87,29 +102,37 @@ async def process_request():
         async with session_pool() as session:
             repo = RequestsRepo(session)
             # Extract chat ID from the request
-            chat_id = await repo.orders.get_user_by_order_id(int(form_dict['order_id']))
+            user = await repo.orders.get_user_by_order_id(int(form_dict['order_id']))
+            order = await repo.orders.get_order_by_id(int(form_dict['order_id']))
+            chat_id = user.id
             if not chat_id:
                 raise ValueError('User chat ID not provided')
-        print(chat_id)
+
+        # Determine the plan_id
+        plan_id = order.plan_id
+        if plan_id not in PHOTO_ID_DICT:
+            raise ValueError('Invalid plan_id provided')
+
+        # Get the photo_id for the specified plan_id
+        photo_id = PHOTO_ID_DICT[plan_id]
 
         # Generate invite links for the private channel and chat
         channel_invite_link = create_invite_link(PRIVATE_CHANNEL_ID)
         chat_invite_link = create_invite_link(PRIVATE_CHAT_ID)
 
-        print(chat_invite_link)
-        print(channel_invite_link)
-
         # Ensure invite links were successfully created
         if not channel_invite_link or not chat_invite_link:
             raise ValueError('Failed to create invite links')
 
-        # Compose and send the notification message
-        message = (
-            f"Your payment was successful! 🎉\n\n"
-            f"Join our private channel: {channel_invite_link}\n"
-            f"Join our private chat: {chat_invite_link}"
-        )
-        if not send_telegram_message(chat_id, message):
+        # Compose and send the photo message with buttons
+        caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
+        buttons = [
+            [
+                {"text": "🔺 ВСТУПИТЬ В КАНАЛ", "url": channel_invite_link},
+                {"text": "🔺 ВСТУПИТЬ В ЧАТ", "url": chat_invite_link}
+            ]
+        ]
+        if not send_telegram_photo(chat_id, photo_id, caption, buttons):
             raise ValueError('Failed to send notification to user')
 
         # Return success response
