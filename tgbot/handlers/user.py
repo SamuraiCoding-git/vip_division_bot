@@ -150,7 +150,7 @@ async def user_start(message: Message, config: Config, state: FSMContext):
             "<b>🔎 Подробная информация по клубу доступна по кнопке ниже, переходи и изучай, или сразу оплачивай доступ</b>\n\n"
             "Ты на верном пути. Действуй!"
         )
-        photo = "AgACAgIAAxkBAALEnWdy0mpGliziww9ozZWVnD1AXjDZAAKm6TEbOoaJS6osN8zKvnYYAQADAgADeQADNgQ"
+        photo = "AgACAgIAAxkBAALKqmdy_wF_FJiT26S4adTIjvWtUvsWAALh6TEb3eaZS3Omx_IkctP8AQADAgADeQADNgQ"
         sent_message = await message.answer_photo(photo, caption, reply_markup=greeting_keyboard())
         await state.update_data(message_ids=[sent_message.message_id])
     else:
