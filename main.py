@@ -58,7 +58,7 @@ def send_telegram_photo(chat_id, photo_id, caption, buttons=None):
         return False
 
 
-def create_invite_link(target_chat_id, expire_in=3600):
+def create_invite_link(target_chat_id, expire_in=86400):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
         payload = {
