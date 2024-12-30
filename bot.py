@@ -3,20 +3,40 @@ import logging
 
 import betterlogging as bl
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
 
+from infrastructure.database.setup import create_session_pool
+from schedulers.base import setup_scheduler
 from tgbot.config import load_config, Config
 from tgbot.handlers import routers_list
 from tgbot.middlewares.config import ConfigMiddleware
+from tgbot.middlewares.scheduler import SchedulerMiddleware
 from tgbot.services import broadcaster
+
+
+
+from aiogram.types import BotCommand
+
+async def set_bot_commands(bot: Bot):
+    commands = [
+        BotCommand(command="payment", description="✅ Тарифы"),
+        BotCommand(command="start", description="🔄 Перезапустить бота"),
+        BotCommand(command="vipdivision", description="🔺 Что такое VIP DIVISION"),
+        BotCommand(command="support", description="💎 Поддержка"),
+        BotCommand(command="play", description="🎮 Игра"),
+        BotCommand(command="subscription", description="⚡ Моя подписка"),
+        BotCommand(command="biography", description="🏆 Биография"),
+    ]
+    await bot.set_my_commands(commands)
 
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
     await broadcaster.broadcast(bot, admin_ids, "Бот был запущен")
 
 
-def register_global_middlewares(dp: Dispatcher, config: Config, session_pool=None):
+def register_global_middlewares(dp: Dispatcher, config: Config, scheduler, session_pool=None):
     """
     Register global middlewares for the given dispatcher.
     Global middlewares here are the ones that are applied to all the handlers (you specify the type of update)
@@ -29,13 +49,13 @@ def register_global_middlewares(dp: Dispatcher, config: Config, session_pool=Non
     """
     middleware_types = [
         ConfigMiddleware(config),
+        SchedulerMiddleware(scheduler)
         # DatabaseMiddleware(session_pool),
     ]
 
     for middleware_type in middleware_types:
         dp.message.outer_middleware(middleware_type)
         dp.callback_query.outer_middleware(middleware_type)
-
 
 def setup_logging():
     """
@@ -74,14 +94,37 @@ def get_storage(config):
         Storage: The storage object based on the configuration.
 
     """
-    if config.tg_bot.use_redis:
-        return RedisStorage.from_url(
-            config.redis.dsn(),
-            key_builder=DefaultKeyBuilder(with_bot_id=True, with_destiny=True),
-        )
-    else:
-        return MemoryStorage()
+    import logging
 
+    if config.tg_bot.use_redis:
+        logging.info("Using Redis as FSM storage")
+        try:
+            # Debug Redis configuration
+            logging.info(f"Redis DSN: {config.redis.dsn()}")
+            logging.info(f"Redis Host: {config.redis.redis_host}")
+            logging.info(f"Redis Port: {config.redis.redis_port}")
+            logging.info(f"Redis Password: {config.redis.redis_pass}")
+
+            # Ensure critical parameters are set
+            if not config.redis.redis_host or not config.redis.redis_port:
+                raise ValueError("Redis configuration is incomplete.")
+
+            # Attempt to create RedisStorage
+            storage = RedisStorage.from_url(
+                config.redis.dsn(),
+                key_builder=DefaultKeyBuilder(with_bot_id=True, with_destiny=True),
+            )
+            # Check Redis connection
+            logging.info("Redis connection established successfully")
+            return storage
+
+        except Exception as e:
+            logging.error(f"Failed to connect to Redis: {e}")
+            raise
+
+    else:
+        logging.info("Using MemoryStorage as FSM storage")
+        return MemoryStorage()
 
 async def main():
     setup_logging()
@@ -89,13 +132,17 @@ async def main():
     config = load_config(".env")
     storage = get_storage(config)
 
-    bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
+    bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode='HTML'))
     dp = Dispatcher(storage=storage)
-
     dp.include_routers(*routers_list)
+    session_pool = await create_session_pool(config.db, echo=False)
 
-    register_global_middlewares(dp, config)
+    scheduler = setup_scheduler(bot, config, storage, session_pool)
 
+    register_global_middlewares(dp, config, scheduler)
+
+    await create_session_pool(config.db)
+    await set_bot_commands(bot)
     await on_startup(bot, config.tg_bot.admin_ids)
     await dp.start_polling(bot)
 

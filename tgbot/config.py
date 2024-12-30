@@ -87,6 +87,15 @@ class TgBot:
         use_redis = env.bool("USE_REDIS")
         return TgBot(token=token, admin_ids=admin_ids, use_redis=use_redis)
 
+@dataclass
+class Payment:
+    token: str
+
+    @staticmethod
+    def from_env(env: Env):
+        token = env.str("PAYMENT_TOKEN")
+        return Payment(token=token)
+
 
 @dataclass
 class RedisConfig:
@@ -167,6 +176,7 @@ class Config:
     """
 
     tg_bot: TgBot
+    payment: Payment
     misc: Miscellaneous
     db: Optional[DbConfig] = None
     redis: Optional[RedisConfig] = None
@@ -187,7 +197,8 @@ def load_config(path: str = None) -> Config:
 
     return Config(
         tg_bot=TgBot.from_env(env),
-        # db=DbConfig.from_env(env),
-        # redis=RedisConfig.from_env(env),
+        db=DbConfig.from_env(env),
+        redis=RedisConfig.from_env(env),
         misc=Miscellaneous(),
+        payment=Payment.from_env(env)
     )
