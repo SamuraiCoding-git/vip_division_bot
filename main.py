@@ -69,15 +69,9 @@ async def process_request():
     # Convert form data to a dictionary
     form_dict = form_data.to_dict()
 
-    # Print and return the form data
-    print("Form Data:", form_dict)
     try:
         # Extract headers
         headers = request.headers
-
-        # Validate the request body
-        if not request.json:
-            raise ValueError('Request body is empty')
 
         # Ensure signature is provided
         if 'Sign' not in headers:
@@ -93,13 +87,17 @@ async def process_request():
         async with session_pool() as session:
             repo = RequestsRepo(session)
             # Extract chat ID from the request
-            chat_id = await repo.orders.get_user_by_order_id(request.json['order_id'])
+            chat_id = await repo.orders.get_user_by_order_id(int(form_dict['order_id']))
             if not chat_id:
                 raise ValueError('User chat ID not provided')
+        print(chat_id)
 
         # Generate invite links for the private channel and chat
         channel_invite_link = create_invite_link(PRIVATE_CHANNEL_ID)
         chat_invite_link = create_invite_link(PRIVATE_CHAT_ID)
+
+        print(chat_invite_link)
+        print(channel_invite_link)
 
         # Ensure invite links were successfully created
         if not channel_invite_link or not chat_invite_link:
