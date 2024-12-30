@@ -201,7 +201,7 @@ async def offer_consent(call: CallbackQuery, callback_data: OfferConsentCallback
                 "<b>🔎 Подробная информация по клубу доступна по кнопке ниже, переходи и изучай, или сразу оплачивай доступ</b>\n\n"
                 "Ты на верном пути. Действуй!"
             )
-            photo = "AgACAgIAAxkBAANeZ25tpU_auagRV6XRAnUyvbCW1BcAAj3mMRsF63FL1GuyRcTcVmQBAAMCAAN5AAM2BA"
+            photo = "AgACAgIAAxkBAALKqmdy_wF_FJiT26S4adTIjvWtUvsWAALh6TEb3eaZS3Omx_IkctP8AQADAgADeQADNgQ"
             sent_message = await call.message.answer_photo(photo, caption, reply_markup=greeting_keyboard())
             await state.update_data(message_ids=[sent_message.message_id])
         else:
