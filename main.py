@@ -87,26 +87,19 @@ async def process_request():
         # Логирование полученных данных
         print(f"Form data: {form_dict}")
 
-        # Извлечение ID заказа
-        order_id = form_dict.get('order_id')
-        if not order_id:
-            raise ValueError('Order ID not provided')
-
-        print(order_id)
-
         # Создание пула сессий базы данных
         session_pool = await create_session_pool(config.db)
 
         async with session_pool() as session:
             repo = RequestsRepo(session)
             # Получение информации о пользователе и заказе
-            user = await repo.orders.get_user_by_order_id(int(order_id))
-            order = await repo.orders.get_order_by_id(int(order_id))
+            user = await repo.users.select_user(int(form_dict['client_id']))
             chat_id = user.id
             if not chat_id:
                 raise ValueError('User chat ID not provided')
 
         # Проверка корректности плана подписки
+        order = await repo.orders.get_latest_paid_order_by_user(chat_id)
         plan_id = order.plan_id
         if plan_id not in PHOTO_ID_DICT:
             raise ValueError('Invalid plan_id provided')
