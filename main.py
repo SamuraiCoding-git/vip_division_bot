@@ -87,18 +87,7 @@ async def process_request():
         # Логирование полученных данных
         print(f"Form data: {form_dict}")
 
-        # Извлечение заголовков
-        headers = request.headers
-
-        # Проверка наличия подписи
-        if 'Sign' not in headers:
-            raise ValueError('Signature not found in headers')
-
-        # Проверка подписи HMAC
-        if not verify_hmac(form_dict, SECRET_KEY, headers['Sign']):
-            raise ValueError('Signature is incorrect')
-
-        # Получение ID заказа и других данных из запроса
+        # Извлечение ID заказа
         order_id = form_dict.get('order_id')
         if not order_id:
             raise ValueError('Order ID not provided')
@@ -154,6 +143,7 @@ async def process_request():
     except Exception as e:
         # Общая обработка неожиданных ошибок
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
+
 
 
 
