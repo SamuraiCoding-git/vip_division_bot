@@ -588,13 +588,12 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         users = await repo.orders.get_users_with_unpaid_orders()
-    await bot.forward_message(422999166, "@VipDivision_bot", message.message_id)
-    # for user in users:
-    #     try:
-    #         await bot.forward_message(user, "@VipDivision_bot", message.message_id)
-    #     except:
-    #         pass
-    #     await asyncio.sleep(0.33)
+    for user in users:
+        try:
+            await bot.send_message(user, message.text)
+        except:
+            pass
+        await asyncio.sleep(0.33)
     await message.answer("Рассылка завершена")
 
 
