@@ -62,6 +62,6 @@ class PlanRepo(BaseRepo):
         Retrieves all plans from the database.
         :return: A list of Plan objects.
         """
-        query = select(Plan).order_by(Plan.created_at)
+        query = select(Plan).order_by(Plan.id)
         result = await self.session.execute(query)
         return result.scalars().all()
