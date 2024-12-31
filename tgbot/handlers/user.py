@@ -1,8 +1,11 @@
+import asyncio
+
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from datetime import datetime, timedelta
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, InlineKeyboardMarkup, \
+    InlineKeyboardButton
 
 from infrastructure.database.repo.requests import RequestsRepo
 from infrastructure.database.setup import create_session_pool
@@ -563,6 +566,50 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
     else:
         # Send an error message if the guide is not found
         await call.message.answer("Гайд не найден.")
+
+
+# @user_router.callback_query(F.data == "pay_crypto")
+# async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
+#     text = ("1 месяц - 15$"
+#             "3 месяца - 40$"
+#             "9 месяцев - 100$")
+
+
+@user_router.message("/message_31_12_18_00")
+async def message_31_12_18_00(message: Message, config: Config, bot: Bot):
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        users = await repo.orders.get_users_with_unpaid_orders()
+
+    for user in users:
+        text = (
+            "Пора стать тем, кто в будущем будет примером для других "
+            "<b>В приватном канале было подведение итогов года и многим результатам, я поражен.</b> "
+            "Таких великих целей мужчины достигают, если кратко, что было у многих: "
+            "— создал презентацию для девайсов apple "
+            "— покупка машин, квартир родителям "
+            "— путешествия по всему миру "
+            "— дайв сафари "
+            "— Женитьбы, рождение детей от пригодных девушек "
+            "— Несколько кратные росты в доходе "
+            "— Создание тела мечты "
+            "Самое интересное, что большая часть ровно год назад в таком же положении как и ты находились без денег, девушек, друзей. Многие даже в армии находятся и творят феноменальные вещи. "
+            "<b>СОЗДАЙ И СВОЮ УВЛЕКАТЕЛЬНУЮ ИСТОРИЮ ЖИЗНИ, НАПОЛНЕННОЙ ЯРКИМИ СОБЫТИЯМИ ДОСТИЖЕНИЯМИ И ДЕВУШКАМИ.</b> "
+            "Сделай шаг уже сейчас, в лучший новый год своей жизни ✊🏽"
+        )
+        media_group = [
+            InputMediaPhoto(media="AgACAgIAAxkBAALW12d0H4ndbfBSbKFTQIrIpkBMfj--AAJy6DEb3eahS5nwCLcbK6SOAQADAgADeQADNgQ"),
+            InputMediaPhoto(media="AgACAgIAAxkBAALW2Gd0H4lvmOOiag3CN9aBk9__DqaeAAJz6DEb3eahS3m7aXenWbUAAQEAAwIAA3kAAzYE")
+        ]
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="СДЕЛАТЬ ШАГ К ЛУЧШЕМУ ГОДУ", callback_data="view_tariffs")
+            ]
+        ])
+        await bot.send_media_group(user, media_group)
+        await bot.send_message(user, text, reply_markup=keyboard)
+        await asyncio.sleep(0.0667)
 
 
 @user_router.callback_query(BackCallbackData.filter())

@@ -109,4 +109,14 @@ class OrderRepo:
         )
         return result.scalar_one_or_none()
 
+    async def get_users_with_unpaid_orders(self) -> List[int]:
+        """
+        Retrieves a list of user IDs who have at least one unpaid order.
+        :return: A list of user IDs.
+        """
+        result = await self.session.execute(
+            select(Order.user_id).filter(Order.is_paid == False).distinct()
+        )
+        return result.scalars().all()
+
 
