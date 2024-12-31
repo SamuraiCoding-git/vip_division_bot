@@ -84,7 +84,7 @@ def vip_division_keyboard(state):
             InlineKeyboardButton(text="💬 КАК РАБОТАЕТ ЧАТ?", callback_data="how_chat_works"),
         ],
         [
-            InlineKeyboardButton(text="✅ ВСТУПИТЬ В СООБЩЕСТВО", callback_data="join_community"),
+            InlineKeyboardButton(text="✅ ВСТУПИТЬ В СООБЩЕСТВО", callback_data="view_tariffs"),
         ],
         [
             InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -161,7 +161,7 @@ def experts_keyboard(state: str):
             InlineKeyboardButton(text="СТИЛИСТ", url="https://telegra.ph/STILIST-PRIVATKI---RODOS-11-13"),
         ],
         [
-            InlineKeyboardButton(text="💳 ОПЛАТИТЬ ДОСТУП", callback_data="pay_access"),
+            InlineKeyboardButton(text="💳 ОПЛАТИТЬ ДОСТУП", callback_data="view_tariffs"),
         ],
         [
             InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
