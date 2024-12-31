@@ -607,8 +607,11 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
                 InlineKeyboardButton(text="СДЕЛАТЬ ШАГ К ЛУЧШЕМУ ГОДУ", callback_data="view_tariffs")
             ]
         ])
-        await bot.send_media_group(user, media_group)
-        await bot.send_message(user, text, reply_markup=keyboard)
+        try:
+            await bot.send_media_group(user, media_group)
+            await bot.send_message(user, text, reply_markup=keyboard)
+        except:
+            pass
         await asyncio.sleep(0.0667)
     await message.answer("Рассылка завершена")
 
