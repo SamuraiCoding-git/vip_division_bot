@@ -580,32 +580,21 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
 
 @user_router.message(F.text == "/message_31_12_18_00")
 async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    if not message.forward_from:
+        return
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
         repo = RequestsRepo(session)
         users = await repo.orders.get_users_with_unpaid_orders()
-
-    for user in users:
-        text = (
-            """
-Лучший подарок себе на новый год 🔥  
-
-Порадуй себя исключительными знаниями в сфере соблазнения, саморазвития, стиля, спорта, здоровья! 
-
-С наступающим, мой друг🎄
-"""
-        )
-        photo = "AgACAgIAAxkBAALZJWd0LvhCfPiHrVIGEk8nbiK_cc0SAAKF6TEb3eahS2VYwYJFHkB_AQADAgADeQADNgQ"
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="🎁 Забрать подарок ", callback_data="view_tariffs")
-            ]
-        ])
-        try:
-            await bot.send_photo(user, photo, caption=text, reply_markup=keyboard)
-        except:
-            pass
-        await asyncio.sleep(0.33)
+    await bot.forward_message(422999166, "@VipDivision_bot", message.message_id)
+    # for user in users:
+    #     try:
+    #         await bot.forward_message(user, "@VipDivision_bot", message.message_id)
+    #     except:
+    #         pass
+    #     await asyncio.sleep(0.33)
     await message.answer("Рассылка завершена")
 
 
