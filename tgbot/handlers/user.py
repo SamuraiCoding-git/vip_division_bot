@@ -610,6 +610,7 @@ async def message_31(message: Message, config: Config, bot: Bot):
         await bot.send_media_group(user, media_group)
         await bot.send_message(user, text, reply_markup=keyboard)
         await asyncio.sleep(0.0667)
+    await message.answer("Рассылка завершена")
 
 
 @user_router.callback_query(BackCallbackData.filter())
