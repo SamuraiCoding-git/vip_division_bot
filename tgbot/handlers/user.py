@@ -331,6 +331,7 @@ async def biography(event, state: FSMContext, bot: Bot):
 
 @user_router.message(F.text == "/payment")
 @user_router.callback_query(F.data == "view_tariffs")
+@user_router.callback_query(F.data == "tariffs")
 
 async def tariffs(event, state: FSMContext, bot: Bot, config: Config):
     if isinstance(event, CallbackQuery):
