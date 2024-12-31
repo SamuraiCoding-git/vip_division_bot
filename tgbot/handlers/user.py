@@ -590,7 +590,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
         users = await repo.orders.get_users_with_unpaid_orders()
     for user in users:
         try:
-            await bot.send_message(user, message.text)
+            await bot.forward_message(user, message.chat.id, message.message_id)
         except:
             pass
         await asyncio.sleep(0.33)
