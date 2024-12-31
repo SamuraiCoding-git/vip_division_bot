@@ -575,7 +575,7 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
 #             "9 месяцев - 100$")
 
 
-@user_router.message("/message_31_12_18_00")
+@user_router.message(F.text == "/message_31_12_18_00")
 async def message_mailing(message: Message, config: Config, bot: Bot):
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
