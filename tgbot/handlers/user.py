@@ -330,7 +330,8 @@ async def biography(event, state: FSMContext, bot: Bot):
     await state.update_data(message_ids=[sent_photo.message_id])
 
 @user_router.message(F.text == "/payment")
-@user_router.callback_query(F.data == "tariffs")
+@user_router.callback_query(F.data == "view_tariffs")
+
 async def tariffs(event, state: FSMContext, bot: Bot, config: Config):
     if isinstance(event, CallbackQuery):
         chat_id = event.message.chat.id
