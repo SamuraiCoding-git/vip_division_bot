@@ -332,3 +332,12 @@ def pay_keyboard(payment_link, state):
     ])
 
     return keyboard
+
+def crypto_pay_link(link):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💲TRUST WALLET",
+                                 url=link)
+        ]
+    ])
+    return keyboard

@@ -18,9 +18,9 @@ from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallback
 from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, menu_keyboard, vip_division_keyboard, \
     access_payment_keyboard, story_keyboard, subscription_keyboard, reviews_payment_keyboard, experts_keyboard, \
     assistant_keyboard, access_keyboard, my_subscription_keyboard, guide_keyboard, pagination_keyboard, guides_keyboard, \
-    pay_keyboard
+    pay_keyboard, crypto_pay_link
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, handle_seduction_deeplink
-from tgbot.utils.payment_utils import generate_payment_link
+from tgbot.utils.payment_utils import generate_payment_link, generate_qr_code
 
 user_router = Router()
 
@@ -425,12 +425,21 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
 
 @user_router.callback_query(F.data == "pay_crypto")
 async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
+    await delete_messages(bot, chat_id=call.message.chat.id, state=state)
+
     data = await state.get_data()
 
     usd_price = data.get("usd_price")
 
     trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
 
+    qr_code_png = InputMediaPhoto(media=generate_qr_code(trust_wallet_link))
+
+    caption = (f"Адрес: {config.misc.tron_wallet}\n"
+               f"Стоимость: {usd_price}\n\n"
+               f"Отправьте хэш транзакции:")
+
+    await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link(trust_wallet_link))
 
 @user_router.callback_query(BackCallbackData.filter())
 async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, bot: Bot, state: FSMContext, config: Config):
