@@ -1,4 +1,4 @@
-from sqlalchemy import BIGINT, Float
+from sqlalchemy import BIGINT, Float, Integer
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,7 +11,7 @@ class Plan(Base, TimestampMixin, TableNameMixin):
     original_price: Mapped[float] = mapped_column(Float, nullable=False)
     discounted_price: Mapped[float] = mapped_column(Float, nullable=False)
     usd_price: Mapped[float] = mapped_column(Float, nullable=False)
-    duration: Mapped[str] = mapped_column(String(64))
+    duration: Mapped[int] = mapped_column(Integer)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="plan")
 

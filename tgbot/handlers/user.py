@@ -459,7 +459,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
             PRIVATE_CHAT_ID = '-1002008772427'
             try:
                 # Calculate days remaining
-                duration_days = int(plan.duration)  # Extract duration as integer
+                duration_days = plan.duration  # Extract duration as integer
                 end_date = order.start_date + timedelta(days=duration_days)
                 days_remaining = max((end_date - datetime.utcnow()).days, 0)
             except ValueError:
