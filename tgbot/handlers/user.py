@@ -485,6 +485,7 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
 async def message_mailing(message: Message, config: Config, bot: Bot):
     await message.answer("Рассылка началась.")
     if message.from_user.id != 422999166:
+        print("YES")
         return
     if not message.forward_from:
         return
