@@ -481,7 +481,7 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
         await call.message.answer("Гайд не найден.")
 
 
-@user_router.message("/mailing_01_01_2025")
+@user_router.message(F.text == "/mailing_01_01_2025")
 async def message_mailing(message: Message, config: Config, bot: Bot):
     await message.answer("Рассылка началась.")
     if message.from_user.id != 422999166:
