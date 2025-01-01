@@ -432,7 +432,11 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
     usd_price = int(data.get("usd_price"))
 
-    path = generate_qr_code(config.misc.tron_wallet)
+    trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
+
+    print(trust_wallet_link)
+
+    path = generate_qr_code(trust_wallet_link)
 
     qr_code_png = FSInputFile(path)
 
