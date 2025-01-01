@@ -509,11 +509,13 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
     ])
     for user in users:
         try:
-            await bot.send_photo(user, photo, caption=caption, reply_markup=keyboard)
+             await bot.send_photo(user, photo, caption=caption, reply_markup=keyboard)
+             print("успех")
         except:
-            pass
+            print("ошибка")
         await asyncio.sleep(0.03)
     await message.answer("Рассылка завершена.")
+
 
 @user_router.callback_query(F.data == "pay_crypto")
 async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
@@ -521,7 +523,7 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
 
     usd_price = int(data.get("usd_price"))
 
-    trust_wallet_link = "tron:<адрес_кошелька>?amount=<сумма>"
+    trust_wallet_link = "tron:?amount=<сумма>"
 
 
 
