@@ -440,7 +440,6 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
     caption = (f"Адрес: {config.misc.tron_wallet}\n"
                f"Стоимость: {usd_price}$\n\n"
-               f"{hlink('TRUST WALLET', trust_wallet_link)}\n\n"
                f"Отправьте хэш транзакции:")
 
     await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
