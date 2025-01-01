@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
 from datetime import datetime, timedelta
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, InlineKeyboardMarkup, \
-    InlineKeyboardButton
+    InlineKeyboardButton, InputFile
 
 from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
@@ -433,7 +433,7 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
     trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
 
-    qr_code_png = InputMediaPhoto(media=generate_qr_code(trust_wallet_link))
+    qr_code_png = InputFile(generate_qr_code(trust_wallet_link))
 
     caption = (f"Адрес: {config.misc.tron_wallet}\n"
                f"Стоимость: {usd_price}\n\n"
