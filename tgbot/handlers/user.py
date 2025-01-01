@@ -573,24 +573,24 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
         await call.message.answer("Гайд не найден.")
 
 
-@user_router.message()
-async def message_mailing(message: Message, config: Config, bot: Bot):
-    if message.from_user.id != 422999166:
-        return
-    if not message.forward_from:
-        return
-    session_pool = await create_session_pool(config.db)
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-        users = await repo.orders.get_users_with_unpaid_orders()
-
-    for user in users:
-        try:
-            await bot.forward_message(user, message.chat.id, message.message_id)
-        except:
-            pass
-        await asyncio.sleep(0.03)
-    await message.answer("Рассылка завершена")
+# @user_router.message()
+# async def message_mailing(message: Message, config: Config, bot: Bot):
+#     if message.from_user.id != 422999166:
+#         return
+#     if not message.forward_from:
+#         return
+#     session_pool = await create_session_pool(config.db)
+#     async with session_pool() as session:
+#         repo = RequestsRepo(session)
+#         users = await repo.orders.get_users_with_unpaid_orders()
+#
+#     for user in users:
+#         try:
+#             await bot.forward_message(user, message.chat.id, message.message_id)
+#         except:
+#             pass
+#         await asyncio.sleep(0.03)
+#     await message.answer("Рассылка завершена")
 
 @user_router.callback_query(F.data == "pay_crypto")
 async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
