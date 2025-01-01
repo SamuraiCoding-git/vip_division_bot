@@ -573,11 +573,40 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
         await call.message.answer("Гайд не найден.")
 
 
-@user_router.callback_query(F.data == "pay_crypto")
-async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
-    data = await state.get_data()
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    if not message.forward_from:
+        return
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        users = await repo.orders.get_users_with_unpaid_orders()
+    photo = "AgACAgIAAxkBAALcR2d1PwZv3ZqCub_T1pG_IvVqnFhnAAIO5TEbotaoS33e3J0K7yo_AQADAgADeQADNgQ"
+    text = (
+        "Заканчивается 1 января, первый день нового года, и так же быстро пролетят следующие 365 дней.\n\n"
+        "И ничего не поменяется, если не изменится твое мышление, твои привычки, твои убеждения.\n\n"
+        "<b>1000 мужчин год назад решились.</b>\n"
+        "Попробуй.\n\n"
+        "Кнопка:\n"
+        "Начать год по-новому.\n\n"
+        "Тарифы."
+    )
 
-    usd_price = int(data.get("usd_price"))
+    for user in users:
+        try:
+            await bot.send_photo(user, photo, caption=text)
+        except:
+            pass
+        await asyncio.sleep(0.33)
+    await message.answer("Рассылка завершена")
+
+# @user_router.callback_query(F.data == "pay_crypto")
+# async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
+#     data = await state.get_data()
+#
+#     usd_price = int(data.get("usd_price"))
 
 
 
