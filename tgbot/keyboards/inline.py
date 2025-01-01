@@ -333,11 +333,13 @@ def pay_keyboard(payment_link, state):
 
     return keyboard
 
-def crypto_pay_link(link):
+def crypto_pay_link(state):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="💲TRUST WALLET",
-                                 url=link)
+            InlineKeyboardButton(
+                text="НАЗАД ↩",
+                callback_data=BackCallbackData(state=state).pack()
+            )
         ]
     ])
     return keyboard
