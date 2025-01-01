@@ -320,8 +320,7 @@ def pay_keyboard(payment_link, state):
         [
             InlineKeyboardButton(
                 text="ОПЛАТИТЬ КРИПТОЙ USDT (TRC 20)",
-                url="https://t.me/vipdivision"
-                # callback_data="pay_crypto"
+                callback_data="pay_crypto"
             )
         ],
         [

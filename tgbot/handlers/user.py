@@ -452,9 +452,9 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         order = await repo.orders.get_latest_paid_order_by_user(chat_id)
-        plan = await repo.plans.select_plan(order.plan_id)
 
         if order:
+            plan = await repo.plans.select_plan(order.plan_id)
             PRIVATE_CHANNEL_ID = '-1001677058959'
             PRIVATE_CHAT_ID = '-1002008772427'
             try:
@@ -516,6 +516,8 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         "чат с единомышленниками 24/7\n"
     )
 
+    await state.update_data(usd_price=plan.usd_price)
+
     product = [
         {
             "quantity": 1,
@@ -571,11 +573,9 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
         await call.message.answer("Гайд не найден.")
 
 
-# @user_router.callback_query(F.data == "pay_crypto")
-# async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
-#     text = ("1 месяц - 15$"
-#             "3 месяца - 40$"
-#             "9 месяцев - 100$")
+@user_router.callback_query(F.data == "pay_crypto")
+async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
+    pass
 
 
 @user_router.callback_query(BackCallbackData.filter())

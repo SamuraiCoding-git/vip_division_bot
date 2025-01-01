@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from environs import Env
 
@@ -140,46 +140,99 @@ class RedisConfig:
 
 
 @dataclass
+class MediaConfig:
+    welcome_photo_id: str
+    about_club_photo_id: str
+    biography_photo_id: str
+    reviews_photos: List[str]
+    pagination_photos: List[str]
+    guides_texting_file_id: str
+    guides_seduction_file_id: str
+    guide_animation: str
+
+    @staticmethod
+    def from_env(env: Env) -> "MediaConfig":
+        return MediaConfig(
+            welcome_photo_id=env.str("WELCOME_PHOTO_ID"),
+            about_club_photo_id=env.str("ABOUT_CLUB_PHOTO_ID"),
+            biography_photo_id=env.str("BIOGRAPHY_PHOTO_ID"),
+            reviews_photos=[
+                env.str("REVIEWS_PHOTO_1"),
+                env.str("REVIEWS_PHOTO_2"),
+            ],
+            pagination_photos=[
+                env.str("PAGINATION_PHOTO_1"),
+                env.str("PAGINATION_PHOTO_2"),
+            ],
+            guides_texting_file_id=env.str("GUIDES_TEXTING_FILE_ID"),
+            guides_seduction_file_id=env.str("GUIDES_SEDUCTION_FILE_ID"),
+            guide_animation=env.str("GUIDE_ANIMATION"),
+        )
+
+
+@dataclass
+class TextConfig:
+    read_article_part_1: str
+    read_article_part_2: str
+    start_message: str
+    biography_message: str
+    tariffs_message: str
+    reviews_caption: str
+    guide_caption: str
+    payment_success_message: str
+    payment_inactive_message: str
+
+    @staticmethod
+    def from_env(env: Env) -> "TextConfig":
+        return TextConfig(
+            read_article_part_1=env.str("READ_ARTICLE_PART_1"),
+            read_article_part_2=env.str("READ_ARTICLE_PART_2"),
+            start_message=env.str("START_MESSAGE"),
+            biography_message=env.str("BIOGRAPHY_MESSAGE"),
+            tariffs_message=env.str("TARIFFS_MESSAGE"),
+            reviews_caption=env.str("REVIEWS_CAPTION"),
+            guide_caption=env.str("GUIDE_CAPTION"),
+            payment_success_message=env.str("PAYMENT_SUCCESS_MESSAGE"),
+            payment_inactive_message=env.str("PAYMENT_INACTIVE_MESSAGE"),
+        )
+
+
+@dataclass
 class Miscellaneous:
-    """
-    Miscellaneous configuration class.
+    private_channel_id: str
+    private_chat_id: str
+    other_params: Optional[str] = None
 
-    This class holds settings for various other parameters.
-    It merely serves as a placeholder for settings that are not part of other categories.
-
-    Attributes
-    ----------
-    other_params : str, optional
-        A string used to hold other various parameters as required (default is None).
-    """
-
-    other_params: str = None
+    @staticmethod
+    def from_env(env: Env) -> "Miscellaneous":
+        return Miscellaneous(
+            private_channel_id=env.str("PRIVATE_CHANNEL_ID"),
+            private_chat_id=env.str("PRIVATE_CHAT_ID"),
+            other_params=env.str("OTHER_PARAMS", default=None),
+        )
 
 
 @dataclass
 class Config:
-    """
-    The main configuration class that integrates all the other configuration classes.
-
-    This class holds the other configuration classes, providing a centralized point of access for all settings.
-
-    Attributes
-    ----------
-    tg_bot : TgBot
-        Holds the settings related to the Telegram Bot.
-    misc : Miscellaneous
-        Holds the values for miscellaneous settings.
-    db : Optional[DbConfig]
-        Holds the settings specific to the database (default is None).
-    redis : Optional[RedisConfig]
-        Holds the settings specific to Redis (default is None).
-    """
-
     tg_bot: TgBot
     payment: Payment
+    db: DbConfig
+    redis: RedisConfig
+    media: MediaConfig
+    text: TextConfig
     misc: Miscellaneous
-    db: Optional[DbConfig] = None
-    redis: Optional[RedisConfig] = None
+
+    @staticmethod
+    def from_env(env: Env) -> "Config":
+        return Config(
+            tg_bot=TgBot.from_env(env),
+            payment=Payment.from_env(env),
+            db=DbConfig.from_env(env),
+            redis=RedisConfig.from_env(env),
+            media=MediaConfig.from_env(env),
+            text=TextConfig.from_env(env),
+            misc=Miscellaneous.from_env(env),
+        )
 
 
 def load_config(path: str = None) -> Config:
@@ -199,6 +252,8 @@ def load_config(path: str = None) -> Config:
         tg_bot=TgBot.from_env(env),
         db=DbConfig.from_env(env),
         redis=RedisConfig.from_env(env),
-        misc=Miscellaneous(),
-        payment=Payment.from_env(env)
+        misc=Miscellaneous.from_env(env),
+        payment=Payment.from_env(env),
+        media=MediaConfig.from_env(env),
+        text=TextConfig.from_env(env),
     )
