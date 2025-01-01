@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, InlineKeyboardMarkup, \
     InlineKeyboardButton
 
+from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
 from infrastructure.database.setup import create_session_pool
 from main import create_invite_link
@@ -53,31 +54,9 @@ async def send_media(message: Message, state: FSMContext):
 
 
 @user_router.callback_query(F.data == "read_article")
-async def read_article(call: CallbackQuery, state: FSMContext):
-    text = (
-        "<b>НАПИШИ ЕЙ ЭТО И ПОЛУЧИ ЕЕ ИНТЕРЕС</b>\n\n"
-        "Каждый из вас сидит на сайтах знакомств и большая часть безрезультатно, потому что пишет скучную банальную или "
-        "чересчур креативную по*бень, которая не цепляет ее интерес.\n\n"
-        "Как пишут все?\n"
-        "— Привет, как дела?\n"
-        "— Привет, что здесь ищешь?\n"
-        "— Привет, что делаешь?\n"
-        "— Привет, давай познакомимся?\n\n"
-        "<i>Нах*й твой привет, джентльмен бл*ть?</i>\n\n"
-        "Здороваются в первом сообщении куколды и девственники, а подписчики Директора пишут сразу по сути:\n\n"
-        "— Ну как тут охота на хороших мальчиков?\n"
-        "— Ну че ты тут, рассказывай, сколько уже дурачков отшила за сегодня?\n"
-        "— Решил в кое-то веки написать первый, надеюсь ты не извращенка\n"
-        "— Ну и когда тебя дома ждать? Опять на сайтах знакомств сидит, дети скучают по матери!\n\n"
-    )
-    text_part_2 = ("Заебись? Конечно за*бись, представляю твое восхищенное лицо, особенно когда ты поймешь какой результат это дает!\n\n"
-        "Это ты еще в привате не был, там ты сознание бы х*уй потерял, поэтому не заходи туда, если не готов.\n\n"
-        "Пойми важное правило — ты должен показать ей небольшую дерзость в первом сообщении, "
-        "в первых тем, что ты не поздороваешься, а значит ты её ставишь ниже себя на старте, "
-        "следовательно у тебя наверняка есть еще варианты, и ей это понравится. Запомни — тебе не нужен её ответ, "
-        "пиши дерзко, как последний х*й, чтобы дурачок как я когда-то не сделал!\n\n"
-        "<b>Просто бери и делай как говорит Директор и получай результат!</b>"
-    )
+async def read_article(call: CallbackQuery, state: FSMContext, config: Config):
+    text = config.text.read_article_part_1
+    text_part_2 = config.text.read_article_part_2
     await state.update_data(read_clicked=True)
     await call.message.answer(text)
     await call.message.answer(text_part_2, reply_markup=guides_keyboard())
@@ -86,14 +65,7 @@ async def read_article(call: CallbackQuery, state: FSMContext):
 
 @user_router.message(CommandStart(deep_link=True))
 async def user_deeplink(message: Message, command: CommandObject):
-    text = (
-        "<b>Небольшая формальность</b> 👆\n\n"
-        "Чтобы забрать файл, который изменит тебя, нажми на кнопку для "
-        '<a href="https://docs.google.com/document/d/14V62s6TOVBT8uOB-4UVX6NcTJqsxmVdz5GZnzYQeRe0/edit?tab=t.0">'
-        "согласия получения рекламных рассылок</a>.\n\n"
-        "<b>P.S.</b> <i>Спама не будет, отправляю только нужное: тебя ждут дополнительные бонусы, фишки, "
-        "видеоуроки и другие ценные материалы.</i>"
-    )
+    text = config.text.mailing_consent_message
     await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
 
 
@@ -120,8 +92,8 @@ async def handle_pagination(call: CallbackQuery, callback_data: PaginationCallba
 
     # Define the media for each page
     photos = {
-        "1": InputMediaPhoto(media="AgACAgIAAxkBAALEnmdy0mopLLTnyePeeEHE6kyneRx9AAKn6TEbOoaJS_3sDQoZC0iCAQADAgADeQADNgQ"),
-        "2": InputMediaPhoto(media="AgACAgIAAxkBAALEn2dy0mopt4VsyRZwqGT1T1f06onlAAKo6TEbOoaJS14XDq9LF5aBAQADAgADeQADNgQ")
+        "1": InputMediaPhoto(media=config.media.pagination_photos[0]),
+        "2": InputMediaPhoto(media=config.media.pagination_photos[1])
     }
 
     # Generate the pagination keyboard
@@ -151,27 +123,12 @@ async def user_start(message: Message, config: Config, state: FSMContext):
     await delete_messages(bot=message.bot, chat_id=message.chat.id, state=state)
 
     if user:
-        caption = (
-            "<b>Приветствую в клубе \"VIP DIVISION\"</b> — <i>закрытое сообщество мужчин, "
-            "которым не все равно на себя и свою жизнь. Именно там происходит максимально "
-            "эффективное развитие себя по всем фронтам.</i>\n\n"
-            "<i>Место обретения уверенности, веры в себя и поддержки со стороны мужчин, которые уже ВНЕ КОНКУРЕНЦИИ.</i>\n\n"
-            "<b>🔎 Подробная информация по клубу доступна по кнопке ниже, переходи и изучай, или сразу оплачивай доступ</b>\n\n"
-            "Ты на верном пути. Действуй!"
-        )
-        photo = "AgACAgIAAxkBAALKqmdy_wF_FJiT26S4adTIjvWtUvsWAALh6TEb3eaZS3Omx_IkctP8AQADAgADeQADNgQ"
+        caption = config.text.start_message
+        photo = config.media.welcome_photo_id
         sent_message = await message.answer_photo(photo, caption, reply_markup=greeting_keyboard())
         await state.update_data(message_ids=[sent_message.message_id])
     else:
-        text = (
-            "<i>Продолжая использовать бот, вы даете </i>"
-            '<a href="https://docs.google.com/document/d/14V62s6TOVBT8uOB-4UVX6NcTJqsxmVdz5GZnzYQeRe0/edit?tab=t.0">'
-            "согласие на получение рекламных рассылок</a> и "
-            '<a href="https://docs.google.com/document/d/10i9OLsAMYRiNaLuCZwBTE8w9gHCetNgj-AZU_lweodE/edit?usp=drive_link">'
-            "согласие оферту по оказанию консультационных услуг</a>.\n"
-            '<i>Подробнее</i> <a href="https://docs.google.com/document/d/188a7jAnvl-iB9DKyiVtzJqzm6QfS6oZiezEjfuT9n0w/edit?usp=drive_link">'
-            "тут</a>"
-        )
+        text = config.text.offer_consent_message
         sent_message = await message.answer(
             text,
             parse_mode="HTML",
@@ -198,14 +155,8 @@ async def offer_consent(call: CallbackQuery, callback_data: OfferConsentCallback
             )
 
         if not callback_data.deeplink:
-            caption = (
-                "<b>Приветствую в клубе \"VIP DIVISION\"</b> — <i>закрытое сообщество мужчин, которым не все равно на себя и свою жизнь."
-                " Именно там происходит максимально эффективное развитие себя по всем фронтам.</i>\n\n"
-                "<i>Место обретения уверенности, веры в себя и поддержки со стороны мужчин, которые уже ВНЕ КОНКУРЕНЦИИ.</i>\n\n"
-                "<b>🔎 Подробная информация по клубу доступна по кнопке ниже, переходи и изучай, или сразу оплачивай доступ</b>\n\n"
-                "Ты на верном пути. Действуй!"
-            )
-            photo = "AgACAgIAAxkBAALKqmdy_wF_FJiT26S4adTIjvWtUvsWAALh6TEb3eaZS3Omx_IkctP8AQADAgADeQADNgQ"
+            caption = config.text.start_message
+            photo = config.media.welcome_photo_id
             sent_message = await call.message.answer_photo(photo, caption, reply_markup=greeting_keyboard())
             await state.update_data(message_ids=[sent_message.message_id])
         else:
@@ -213,12 +164,11 @@ async def offer_consent(call: CallbackQuery, callback_data: OfferConsentCallback
     else:
         await send_consent_request(call, state)
 
-
 @user_router.callback_query(F.data == "about_club")
 async def about_club(call: CallbackQuery, bot: Bot, state: FSMContext):
     await delete_messages(bot=call.bot, chat_id=call.message.chat.id, state=state)
 
-    photo = "AgACAgIAAxkBAALEjmdy0mrTJ-bx2nlZDWMhqBbBV8jKAAKX6TEbOoaJSzj3KXBj1mmtAQADAgADeQADNgQ"
+    photo = config.media.about_club_photo_id
     sent_message = await call.message.answer_photo(photo, reply_markup=menu_keyboard())
     await bot.pin_chat_message(call.message.chat.id, sent_message.message_id)
     await state.update_data(message_ids=[sent_message.message_id])
@@ -234,42 +184,13 @@ async def about_vip_division(event, bot: Bot, state: FSMContext):
         chat_id = event.chat.id
 
     media_group = [
-        InputMediaPhoto(media="AgACAgIAAxkBAAIs-WdVrJiz3J4cVEHjerodiRRYH6bXAAJq5DEbTXapSuHtzkxwLB-WAQADAgADeQADNgQ"),
-        InputMediaVideo(media="BAACAgIAAxkBAAIs-mdVrJgeZZ3gDm-tkwUOcmkUjmtpAALlWAACTXapSn9ubO3gLOtANgQ"),
+        InputMediaPhoto(media=config.media.vip_division_photos[0]),
+        InputMediaVideo(media=config.media.vip_division_photos[1]),
     ]
     sent_media = await bot.send_media_group(chat_id=chat_id, media=media_group)
     message_ids = [msg.message_id for msg in sent_media]
 
-    caption = (
-        "<b>ПРИВАТНЫЙ КАНАЛ СОСТОИТ ИЗ 2 ВЕЩЕЙ:</b> \n\n"
-        "<b>1. ЗНАНИЯ</b>, это считай учебник для любого мужчины, который собирается получить от жизни ВСЕ!!! "
-        "Бесплатный канал, это начальная школа. Приватка — это магистратура. \n\n"
-        "Что в себя включает? \n\n"
-        "<b>— СОБЛАЗНЕНИЕ ТЕОРИЯ/ ПРАКТИКА.</b>\n"
-        "Психология и работа мозга женщины, как появляется влечение, свидания и что на них говорить, секс. "
-        "Вопрос с девушками/ сексом навсегда будет закрыт. \n\n"
-        "<b>— ОТНОШЕНИЯ</b>\n"
-        "Здесь про выбор пригодной девушки для семьи, как вести себя так, чтобы страсть не пропадала, "
-        "про распределение ролей, воспитание детей и просто о счастливой семейной жизни.\n\n"
-        "<b>— МУЖЕСТВЕННОСТЬ. ДЕНЬГИ. УСПЕХ. ХАРИЗМА</b>\n"
-        "Здесь ты прокачиваешь свою личность на весь свой потенциал, сначала уничтожаешь ограничивающие убеждения, "
-        "закладываешь новые, разжигаешь любовь к себе и миру, и на этой энергии, становишься ЕБЫРЕМ ПРИВАТКИ. \n\n"
-        "<b>— ПСИХОЛОГИЯ И НЛП</b>\n"
-        "Познаешь все тайны психологии человека, не только женщины, но и мужчин, общественных масс, чтобы позиционировать "
-        "себя должным образом и становишься мужчиной ВЫСОКОЙ ЦЕННОСТИ и вооружаешься всеми видами манипуляций, "
-        "а также техниками НЛП. \n\n"
-        "<b>— ТЕЛО. ЗДОРОВЬЕ. СПОРТ</b>\n"
-        "Приводишь в порядок свое здоровье, тело, соц. сети — это истинное проявление заботы и любви о себе в первую очередь. "
-        "Составишь программу тренировок или похудения. Так же получаешь знания о своей гормональной системе и избавляешься "
-        "от всей вредной хуйни по типу алкоголя, сигарет. \n\n"
-        "<b>— СТИЛЬ. УХОД ЗА СОБОЙ</b>\n"
-        "Создаешь свой утонченный стиль, подбираешь духи, приводишь в порядок свою привлекательность и до конца жизни выглядишь "
-        "пиздато, данная информация экономит огромные деньги, ведь грамотно подбираешь себе гардероб/духи/средства ухода.\n\n"
-        "<b>— ПРЯМЫЕ ЭФИРЫ</b>\n"
-        "Ко всему сказанному, делюсь своим жизненным опытом, как преодолевал препятствия и откуда брал веру в свои силы. "
-        "Регулярно проводятся эфиры с разбором подписчиков, чтобы вытащить/развить человека конкретно в его ситуации. \n\n"
-        "✅ Более 1000 постов в свободном доступе"
-    )
+    caption = config.text.vip_division_caption
 
     sent_caption = await bot.send_message(chat_id=chat_id, text=caption, reply_markup=vip_division_keyboard("menu"))
     message_ids.append(sent_caption.message_id)
@@ -283,20 +204,7 @@ async def how_chat_works(call: CallbackQuery, state: FSMContext):
 
     message_ids = []
 
-    text = (
-        "<b>ЧАТ</b> \n\n"
-        "Знания это заебись, но чат это место их применения и поддержки. \n\n"
-        "Сгусток тестостероново-дружной атмосферы, где люди достигшие результатов помогут вам с вопросами, "
-        "дадут дельные советы в любой сфере жизни. \n\n"
-        "Здесь же ты отрабатываешь навыки общения все что предложено в постах, НА ГЛАЗАХ МЕНЯЕШЬ СВОЮ СТАРУЮ ПРОШИВКУ, "
-        "получаешь поддержку, заводишь друзей/ братьев/ партнеров для бизнеса. \n\n"
-        "Так же в чате ты можешь лично мне задать вопрос. \n\n"
-        "В нем ты можешь делиться всем, что происходит в жизни или в чем ищешь развитие, да и просто зарядиться бешенной энергией "
-        "и посмеяться, обсудить такие темы, как: книги, спорт, заработок, да все что угодно, никого еще стороной не обошли, "
-        "и не бросили в беде. \n\n"
-        "<b>Сообщество которое мотивирует друг друга своими результатами, это мужчины объединенных общей целью ВЫЕБАТЬ ЭТУ ЖИЗНЬ, "
-        "тут рады всем кто стремится к развитию.</b>"
-    )
+    text = config.text.chat_caption
     sent = await call.message.answer(text, reply_markup=access_payment_keyboard("how_chat_works"))
     message_ids.append(sent.message_id)
 
@@ -573,30 +481,47 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
         await call.message.answer("Гайд не найден.")
 
 
-# @user_router.message()
-# async def message_mailing(message: Message, config: Config, bot: Bot):
-#     if message.from_user.id != 422999166:
-#         return
-#     if not message.forward_from:
-#         return
-#     session_pool = await create_session_pool(config.db)
-#     async with session_pool() as session:
-#         repo = RequestsRepo(session)
-#         users = await repo.orders.get_users_with_unpaid_orders()
-#
-#     for user in users:
-#         try:
-#             await bot.forward_message(user, message.chat.id, message.message_id)
-#         except:
-#             pass
-#         await asyncio.sleep(0.03)
-#     await message.answer("Рассылка завершена")
+@user_router.message("/mailing_01_01_2025")
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    await message.answer("Рассылка началась.")
+    if message.from_user.id != 422999166:
+        return
+    if not message.forward_from:
+        return
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        users = await repo.orders.get_users_with_unpaid_orders()
+
+    photo = "AgACAgIAAxkBAALcR2d1PwZv3ZqCub_T1pG_IvVqnFhnAAIO5TEbotaoS33e3J0K7yo_AQADAgADeQADNgQ"
+    caption = (
+        "Заканчивается 1 января, первый день нового года, и так же быстро пролетят следующие 365 дней.\n\n"
+        "И ничего не поменяется, если не изменится твое мышление, твои привычки, твои убеждения.\n\n"
+        "<b>1000 мужчин год назад решились.</b>\n"
+        "Попробуй.\n\n"
+        "Кнопка:\n"
+        "Начать год по-новому.\n\n"
+    )
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="ТАРИФЫ", callback_data="view_tariffs")
+        ]
+    ])
+    for user in users:
+        try:
+            await bot.send_photo(user, photo, caption=caption, reply_markup=keyboard)
+        except:
+            pass
+        await asyncio.sleep(0.03)
+    await message.answer("Рассылка завершена.")
 
 @user_router.callback_query(F.data == "pay_crypto")
 async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
     data = await state.get_data()
 
     usd_price = int(data.get("usd_price"))
+
+    trust_wallet_link = "tron:<адрес_кошелька>?amount=<сумма>"
 
 
 

@@ -148,6 +148,7 @@ class MediaConfig:
     pagination_photos: List[str]
     guides_texting_file_id: str
     guides_seduction_file_id: str
+    vip_division_photos: List[str]
     guide_animation: str
 
     @staticmethod
@@ -164,6 +165,10 @@ class MediaConfig:
                 env.str("PAGINATION_PHOTO_1"),
                 env.str("PAGINATION_PHOTO_2"),
             ],
+            vip_division_photos=[
+                env.str("VIP_DIVISION_PHOTO_1"),
+                env.str("VIP_DIVISION_PHOTO_2"),
+            ],
             guides_texting_file_id=env.str("GUIDES_TEXTING_FILE_ID"),
             guides_seduction_file_id=env.str("GUIDES_SEDUCTION_FILE_ID"),
             guide_animation=env.str("GUIDE_ANIMATION"),
@@ -175,10 +180,17 @@ class TextConfig:
     read_article_part_1: str
     read_article_part_2: str
     start_message: str
+    offer_consent_message: str
+    mailing_consent_message: str
     biography_message: str
     tariffs_message: str
     reviews_caption: str
     guide_caption: str
+    questions_caption: str
+    vip_division_caption: str
+    experts_caption: str
+    tariff_caption: str
+    chat_caption: str
     payment_success_message: str
     payment_inactive_message: str
 
@@ -188,13 +200,21 @@ class TextConfig:
             read_article_part_1=env.str("READ_ARTICLE_PART_1"),
             read_article_part_2=env.str("READ_ARTICLE_PART_2"),
             start_message=env.str("START_MESSAGE"),
+            mailing_consent_message=env.str("MAILING_CONSENT_MESSAGE"),
+            offer_consent_message=env.str("OFFER_CONSENT_MESSAGE"),
             biography_message=env.str("BIOGRAPHY_MESSAGE"),
+            vip_division_caption=env.str("VIP_DIVISION_CAPTION"),
             tariffs_message=env.str("TARIFFS_MESSAGE"),
             reviews_caption=env.str("REVIEWS_CAPTION"),
             guide_caption=env.str("GUIDE_CAPTION"),
+            questions_caption=env.str("QUESTIONS_CAPTION"),
+            experts_caption=env.str("EXPERTS_CAPTION"),
+            tariff_caption=env.str("TARIFF_CAPTION"),
+            chat_caption=env.str("CHAT_CAPTION"),
             payment_success_message=env.str("PAYMENT_SUCCESS_MESSAGE"),
             payment_inactive_message=env.str("PAYMENT_INACTIVE_MESSAGE"),
         )
+
 
 
 @dataclass
@@ -237,23 +257,9 @@ class Config:
 
 def load_config(path: str = None) -> Config:
     """
-    This function takes an optional file path as input and returns a Config object.
-    :param path: The path of env file from where to load the configuration variables.
-    It reads environment variables from a .env file if provided, else from the process environment.
-    :return: Config object with attributes set as per environment variables.
+    Load the configuration from the specified .env file or environment variables.
     """
-
-    # Create an Env object.
-    # The Env object will be used to read environment variables.
     env = Env()
     env.read_env(path)
+    return Config.from_env(env)
 
-    return Config(
-        tg_bot=TgBot.from_env(env),
-        db=DbConfig.from_env(env),
-        redis=RedisConfig.from_env(env),
-        misc=Miscellaneous.from_env(env),
-        payment=Payment.from_env(env),
-        media=MediaConfig.from_env(env),
-        text=TextConfig.from_env(env),
-    )
