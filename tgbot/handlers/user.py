@@ -507,7 +507,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
             InlineKeyboardButton(text="ТАРИФЫ", callback_data="view_tariffs")
         ]
     ])
-    print(users[0])
+    print("User: ", users[0])
     for user in users:
         try:
              await bot.send_photo(user, photo, caption=caption, reply_markup=keyboard)
