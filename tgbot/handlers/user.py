@@ -429,7 +429,7 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
     data = await state.get_data()
 
-    usd_price = data.get("usd_price")
+    usd_price = int(data.get("usd_price"))
 
     trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
 
@@ -438,11 +438,11 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
     qr_code_png = FSInputFile(path)
 
     caption = (f"Адрес: {config.misc.tron_wallet}\n"
-               f"Стоимость: {usd_price}\n\n"
+               f"Стоимость: {usd_price}$\n\n"
                f"<a href=\"{trust_wallet_link}\">TRUST WALLET</a>\n\n"
                f"Отправьте хэш транзакции:")
 
-    await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'))
+    await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
 
 @user_router.callback_query(BackCallbackData.filter())
 async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, bot: Bot, state: FSMContext, config: Config):
