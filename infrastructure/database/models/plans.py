@@ -10,6 +10,7 @@ class Plan(Base, TimestampMixin, TableNameMixin):
     name: Mapped[str] = mapped_column(String(256))
     original_price: Mapped[float] = mapped_column(Float, nullable=False)
     discounted_price: Mapped[float] = mapped_column(Float, nullable=False)
+    usd_price: Mapped[float] = mapped_column(Float, nullable=False)
     duration: Mapped[str] = mapped_column(String(64))
 
     users: Mapped[list["User"]] = relationship("User", back_populates="plan")

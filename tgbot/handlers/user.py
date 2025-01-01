@@ -459,7 +459,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
             PRIVATE_CHAT_ID = '-1002008772427'
             try:
                 # Calculate days remaining
-                duration_days = int(plan.duration[:-5])  # Extract duration as integer
+                duration_days = int(plan.duration)  # Extract duration as integer
                 end_date = order.start_date + timedelta(days=duration_days)
                 days_remaining = max((end_date - datetime.utcnow()).days, 0)
             except ValueError:
@@ -576,25 +576,6 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
 #     text = ("1 месяц - 15$"
 #             "3 месяца - 40$"
 #             "9 месяцев - 100$")
-
-
-@user_router.message()
-async def message_mailing(message: Message, config: Config, bot: Bot):
-    if message.from_user.id != 422999166:
-        return
-    if not message.forward_from:
-        return
-    session_pool = await create_session_pool(config.db)
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-        users = await repo.orders.get_users_with_unpaid_orders()
-    for user in users:
-        try:
-            await bot.forward_message(user, message.chat.id, message.message_id)
-        except:
-            pass
-        await asyncio.sleep(0.33)
-    await message.answer("Рассылка завершена")
 
 
 @user_router.callback_query(BackCallbackData.filter())
