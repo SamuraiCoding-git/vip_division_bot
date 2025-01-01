@@ -583,23 +583,29 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         users = await repo.orders.get_users_with_unpaid_orders()
-    photo = "AgACAgIAAxkBAALcR2d1PwZv3ZqCub_T1pG_IvVqnFhnAAIO5TEbotaoS33e3J0K7yo_AQADAgADeQADNgQ"
+    photo = "AgACAgIAAxkBAALcW2d1RkX-bgH4n20J2GnJCW9UCu8IAAIy5TEbotaoS3T7PavZ4iRSAQADAgADeAADNgQ"
+
     text = (
-        "Заканчивается 1 января, первый день нового года, и так же быстро пролетят следующие 365 дней.\n\n"
-        "И ничего не поменяется, если не изменится твое мышление, твои привычки, твои убеждения.\n\n"
-        "<b>1000 мужчин год назад решились.</b>\n"
-        "Попробуй.\n\n"
-        "Кнопка:\n"
-        "Начать год по-новому.\n\n"
-        "Тарифы."
-    )
+        "ты там живой? \n"
+        "Я уверен ты круто отметил новый год, наполнился энергией и эмоциями.\n\n"
+        "Появились силы на достижение новых целей, так оправдай свои ожидания, сделай этот год максимально качественным\n\n"
+        "<b>Ты можешь сделать так, что будешь вспоминать этот момент, когда принял решение максимально реализоваться в этой жизни.  "
+        "Тот самый поворотный момент, когда ты вступил в приватный канал, и твоя жизнь начала меняться с фантастической скоростью.</b>\n\n"
+        "Один выбор, между оливье и приваткой.\n\n"
+        "Многие уже привыкли жить, соглашаясь на меньшее в жизни, но я уверен что ты не из их числа\n\n")
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="ВЫБРАТЬ ЛУЧШИЙ ГОД В ЖИЗНИ", callback_data="view_tariffs")
+        ]
+    ])
 
     for user in users:
         try:
-            await bot.send_photo(user, photo, caption=text)
+            await bot.send_photo(user, photo, caption=text, reply_markup=keyboard)
         except:
             pass
-        await asyncio.sleep(0.33)
+        await asyncio.sleep(0.03)
     await message.answer("Рассылка завершена")
 
 # @user_router.callback_query(F.data == "pay_crypto")
