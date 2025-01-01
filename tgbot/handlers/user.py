@@ -220,14 +220,9 @@ async def biography(event, state: FSMContext, bot: Bot):
         chat_id = event.chat.id
     await delete_messages(bot=event.bot, chat_id=chat_id, state=state)
 
-    caption = (
-        "<b>Я НЕКРАСИВЫЙ, У МЕНЯ НЕТ ДЕНЕГ, МНЕ НЕ ПОВЕЗЛО, КОМУ Я НУЖЕН? МОЯ ИСТОРИЯ</b> \n\n"
-        "Как же сука часто Я в последнее время вижу все эти сообщения от многих из вас, "
-        "и как же Я узнаю в этом себя лет так 13-14 назад.\n\n"
-        "Парни, вот прям один в один была у меня такая же хуйня в голове."
-    )
+    caption = config.text.biography_message
 
-    photo = "AgACAgIAAxkBAALEj2dy0mpBgWOxySzS5SO6WSsrds-hAAKY6TEbOoaJS4HJDjOaq7oCAQADAgADeQADNgQ"
+    photo = config.media.biography_photo_id
 
     # Send the photo with caption and a keyboard for navigation
     sent_photo = await bot.send_photo(
@@ -255,15 +250,7 @@ async def tariffs(event, state: FSMContext, bot: Bot, config: Config):
         repo = RequestsRepo(session)
         plans = await repo.plans.get_all_plans()
 
-    text = (
-        "<b>ЭТО САМОЕ ЛУЧШЕЕ что есть в интернете и один только вопрос, сколько стоит?</b>\n\n"
-        "<b>46 ₽ в день или 1390 в месяц</b>\n\n"
-        "<b>НИ ОДНОГО ПЛОХОГО ОТЗЫВА, это можно считать выдумкой, но это ФАКТ, люди меняют свою жизнь на 180 градусов уже за неделю чтения.</b>\n\n"
-        "<b>3 месяца — <s>4.190</s> 3790 рублей (10% скидка)</b>\n"
-        "<b>6 месяца — <s>7.790</s> 6590 рублей (15% скидка)</b>\n"
-        "<b>9 месяцев — <s>12.510</s> 9990 рублей (20% скидка)</b>\n\n"
-        "<b>Выбирай удобный тариф и начинай работу.</b>"
-    )
+    text = config.text.tariffs_message
     sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=subscription_keyboard("menu", plans))
     await state.update_data(message_ids=[sent_message.message_id])
 
@@ -281,22 +268,15 @@ async def reviews(call: CallbackQuery, state: FSMContext, bot: Bot):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
 
     media_group = [
-        InputMediaPhoto(media="AgACAgIAAxkBAALFAAFnctQiwkDfyOam9nRQiAMkqU2NoAACregxG93mmUvFJ7sd1rpbFQEAAwIAA3kAAzYE"),
-        InputMediaPhoto(media="AgACAgIAAxkBAALFAWdy1CKA8eaokd8r3z345LgVtrWHAAKu6DEb3eaZS1uc7B_6ru-UAQADAgADeQADNgQ"),
+        InputMediaPhoto(media=config.media.reviews_photos[0]),
+        InputMediaPhoto(media=config.media.reviews_photos[1]),
     ]
 
     sent_media = await call.message.answer_media_group(media=media_group)
 
     message_ids = [msg.message_id for msg in sent_media]
 
-    caption = (
-        "Тысячи мужчин уже <b>ЖИВУТ ЖИЗНЬ</b>, к которой ты стремишься и не сказать, что они были богатыми или харизматичными.\n\n"
-        "Большая часть из них была:\n"
-        "— закомплексованные\n"
-        "— неуверенные в себе\n"
-        "— безэнергичные\n\n"
-        "Главное кем в итоге они стали. Ознакомься с историями мужчин."
-    )
+    caption = config.text.reviews_caption
 
     sent_caption = await call.message.answer(text=caption, reply_markup=reviews_payment_keyboard("menu"))
     message_ids.append(sent_caption.message_id)
@@ -312,26 +292,17 @@ async def experts(event, state: FSMContext, bot: Bot):
         chat_id = event.chat.id
     await delete_messages(bot=bot, chat_id=chat_id, state=state)
 
-    text = (
-        "<b>Специально для тебя есть 2 эксперта:</b>\n\n"
-        "Анар - знает все об уходе за кожей, здоровье, диетах, гормональной системы и всего что касается ЗОЖ!\n\n"
-        "Родион - истинный мастер в мире стилистики и профессионал с харизмой!"
-    )
+    text = config.text.experts_caption
 
     sent_message = await bot.send_message(chat_id, text, reply_markup=experts_keyboard("menu"))
     await state.update_data(message_ids=[sent_message.message_id])
 
 @user_router.callback_query(F.data == "questions")
-async def questions(call: CallbackQuery, state: FSMContext, bot: Bot):
+async def questions(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
 
-    text = (
-        "<b>В голове много вопросов? Подойдет ли тебе мой клуб?</b> "
-        "<b>Что нового найдешь для себя?</b>\n\n"
-        "Специально для тебя собрал статью из часто задаваемых вопросов.\n\n"
-        "Изучай 🤝"
-    )
-    photo = "AgACAgIAAxkBAALEjWdy0mrMCpokNVNmsSDM_LA4yUGcAAKU6TEbOoaJS2R_fx-NCCulAQADAgADeQADNgQ"
+    text = config.text.questions_caption
+    photo = config.media.questions_photo
     sent_message = await call.message.answer_photo(photo, caption=text, reply_markup=access_keyboard("menu"))
     await state.update_data(message_ids=[sent_message.message_id])
 
@@ -363,8 +334,6 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
         if order:
             plan = await repo.plans.select_plan(order.plan_id)
-            PRIVATE_CHANNEL_ID = '-1001677058959'
-            PRIVATE_CHAT_ID = '-1002008772427'
             try:
                 # Calculate days remaining
                 duration_days = plan.duration  # Extract duration as integer
@@ -376,20 +345,14 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
             days_remaining = 0
         # Prepare the message text based on subscription status
         if days_remaining > 0:
-            text = (
-                f"У тебя активная подписка! 🎉\n\n"
-                f"Осталось дней: {days_remaining} дней.\n"
-            )
+            text = config.text.payment_success_message.replace("${days_remaining}", str(days_remaining))
             sent_message = await bot.send_message(chat_id=chat_id, text=text,
                                                   reply_markup=my_subscription_keyboard(state="menu",
                                                                                         is_sub=True,
-                                                                                        chat_link=create_invite_link(PRIVATE_CHAT_ID),
-                                                                                        channel_link=create_invite_link(PRIVATE_CHANNEL_ID)))
+                                                                                        chat_link=create_invite_link(config.misc.private_chat_id),
+                                                                                        channel_link=create_invite_link(config.misc.private_channel_id)))
         else:
-            text = (
-                "У тебя нет активных подписок ⌛\n\n"
-                "Ознакомьтесь с тарифами, нажав на соответствующую кнопку"
-            )
+            text = config.text.payment_inactive_message
 
         # Send the message
             sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard(state="menu"))
@@ -413,16 +376,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
 
-    text = (
-        f"<b>Тариф: {plan.name}</b>\n"
-        f"{price_text}"
-        f"<b>Срок действия: {plan.name[:-2]}</b> \n\n"
-        "Ты получаешь доступ:\n\n"
-        "— <u>CASTING DIRECTOR VIP</u>\n"
-        "канал со всеми материалами по темам: соблазнение, финансы, стиль, спорт, здоровье, отношения, мужественность, секс\n"
-        "— <u>VIP DIVISION</u>\n"
-        "чат с единомышленниками 24/7\n"
-    )
+    text = config.text.tariff_caption.replace("${plan.name}", plan.name).replace("${price_text}", price_text).replace("${plan.name[:-2]}", plan.name[:-2])
 
     await state.update_data(usd_price=plan.usd_price)
 
@@ -435,38 +389,26 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         }
     ]
 
-    linktoform = "https://vipdivision.payform.ru/"
-
-    link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, linktoform)
+    link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
 
     await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
 
 @user_router.callback_query(F.data == "guide")
-async def guide(call: CallbackQuery, state: FSMContext, bot: Bot):
+async def guide(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
 
-    caption = (
-        "<b>Благодаря гайдам ты сможешь:</b>\n\n"
-        "1 — Трахать тех девушек, которые были для тебя ранее недоступны ( НИТАКУСИ )\n\n"
-        "2 — Найдешь ТУ САМУЮ девушку для отношений\n\n"
-        "3 — Будешь выстраивать отношения где ТЫ будешь главными, ТЕБЯ будет любить и уважать девушка.\n\n"
-        "4 — Научишься любить и уважать СЕБЯ без исключений\n\n"
-        "5 — Избавишься от страхов и ограничивающих убеждений\n\n"
-        "<b>Также ты найдешь примеры фраз, как заставить девушку тебя добиваться, конкретные модели поведения, чтобы не потерять авторитет.</b>\n\n"
-        "Если хочешь узнать, как уже закрыть вопрос с девушками, чтобы они сами просили их выебать, а ты уже думал надо тебе или нет, то будь на связи и читай ГАЙДЫ."
-    )
-
-    animation = "BAACAgIAAxkBAAID5GdUP1HOorIbqY-v_jImDf0OZP-nAAJ7YAACDq9BSe1TKBaZWCL-NgQ"
+    caption = config.text.guide_caption
+    animation = config.media.guide_animation
 
     sent_message = await call.message.answer_animation(animation, caption=caption, reply_markup=guide_keyboard("menu"))
     await state.update_data(message_ids=[sent_message.message_id])
 
 
 @user_router.callback_query(GuidesCallbackData.filter())
-async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: GuidesCallbackData):
+async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: GuidesCallbackData, config: Config):
     guides = {
-        "texting": "BQACAgIAAxkBAALFHGdy1deNck8Csc3p6RZaflKPy8clAAIhZwACho5wS17kLtlN_gO0NgQ",  # Гайд по перепискам
-        "seduction": "BQACAgIAAxkBAALFHWdy1ddGT-0fTMob9D3yWwJfIfRFAAKiVwACCqjBSUlYSd1AZvJdNgQ",  # Гайд по соблазнению
+        "texting": config.media.guides_texting_file_id,  # Гайд по перепискам
+        "seduction": config.media.guides_seduction_file_id,  # Гайд по соблазнению
     }
 
     # Get the selected guide
@@ -481,51 +423,13 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
         await call.message.answer("Гайд не найден.")
 
 
-@user_router.message(F.text == "/mailing")
-async def message_mailing(message: Message, config: Config, bot: Bot):
-    await message.answer("Рассылка началась.")
-    if message.from_user.id != 422999166:
-        print("YES")
-        return
-    session_pool = await create_session_pool(config.db)
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-        users = await repo.orders.get_users_with_unpaid_orders()
-
-    photo = "AgACAgIAAxkBAALcR2d1PwZv3ZqCub_T1pG_IvVqnFhnAAIO5TEbotaoS33e3J0K7yo_AQADAgADeQADNgQ"
-    caption = (
-        "Заканчивается 1 января, первый день нового года, и так же быстро пролетят следующие 365 дней.\n\n"
-        "И ничего не поменяется, если не изменится твое мышление, твои привычки, твои убеждения.\n\n"
-        "<b>1000 мужчин год назад решились.</b>\n"
-        "Попробуй.\n\n"
-        "Кнопка:\n"
-        "Начать год по-новому.\n\n"
-    )
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="ТАРИФЫ", callback_data="view_tariffs")
-        ]
-    ])
-    print("User: ", users[0])
-    for user in users:
-        try:
-             await bot.send_photo(user, photo, caption=caption, reply_markup=keyboard)
-             print("успех")
-        except:
-            print("ошибка")
-        await asyncio.sleep(0.03)
-    await message.answer("Рассылка завершена.")
-
-
 @user_router.callback_query(F.data == "pay_crypto")
-async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
+async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     data = await state.get_data()
 
-    usd_price = int(data.get("usd_price"))
+    usd_price = data.get("usd_price")
 
-    trust_wallet_link = "tron:?amount=<сумма>"
-
-
+    trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
 
 
 @user_router.callback_query(BackCallbackData.filter())
@@ -533,48 +437,19 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
     await delete_messages(bot=call.bot, chat_id=call.message.chat.id, state=state)
 
     if callback_data.state == "menu":
-        photo = "AgACAgIAAxkBAALEjmdy0mrTJ-bx2nlZDWMhqBbBV8jKAAKX6TEbOoaJSzj3KXBj1mmtAQADAgADeQADNgQ"
+        photo = config.media.about_club_photo_id
         new_message = await call.message.answer_photo(photo, reply_markup=menu_keyboard())
         await bot.pin_chat_message(call.message.chat.id, new_message.message_id)
         await state.update_data(message_ids=[new_message.message_id])
     elif callback_data.state == "how_chat_works":
         media_group = [
-            InputMediaPhoto(media="AgACAgIAAxkBAAIs-WdVrJiz3J4cVEHjerodiRRYH6bXAAJq5DEbTXapSuHtzkxwLB-WAQADAgADeQADNgQ"),
-            InputMediaVideo(media="BAACAgIAAxkBAAIs-mdVrJgeZZ3gDm-tkwUOcmkUjmtpAALlWAACTXapSn9ubO3gLOtANgQ"),
+            InputMediaPhoto(media=config.media.vip_division_photos[0]),
+            InputMediaVideo(media=config.media.vip_division_photos[1]),
         ]
         sent_media = await call.message.answer_media_group(media_group)
         message_ids = [msg.message_id for msg in sent_media]
 
-        caption = (
-            "<b>ПРИВАТНЫЙ КАНАЛ СОСТОИТ ИЗ 2 ВЕЩЕЙ:</b> \n\n"
-            "<b>1. ЗНАНИЯ</b>, это считай учебник для любого мужчины, который собирается получить от жизни ВСЕ!!! "
-            "Бесплатный канал, это начальная школа. Приватка — это магистратура. \n\n"
-            "Что в себя включает? \n\n"
-            "<b>— СОБЛАЗНЕНИЕ ТЕОРИЯ/ ПРАКТИКА.</b>\n"
-            "Психология и работа мозга женщины, как появляется влечение, свидания и что на них говорить, секс. "
-            "Вопрос с девушками/ сексом навсегда будет закрыт. \n\n"
-            "<b>— ОТНОШЕНИЯ</b>\n"
-            "Здесь про выбор пригодной девушки для семьи, как вести себя так, чтобы страсть не пропадала, "
-            "про распределение ролей, воспитание детей и просто о счастливой семейной жизни.\n\n"
-            "<b>— МУЖЕСТВЕННОСТЬ. ДЕНЬГИ. УСПЕХ. ХАРИЗМА</b>\n"
-            "Здесь ты прокачиваешь свою личность на весь свой потенциал, сначала уничтожаешь ограничивающие убеждения, "
-            "закладываешь новые, разжигаешь любовь к себе и миру, и на этой энергии, становишься ЕБЫРЕМ ПРИВАТКИ. \n\n"
-            "<b>— ПСИХОЛОГИЯ И НЛП</b>\n"
-            "Познаешь все тайны психологии человека, не только женщины, но и мужчин, общественных масс, чтобы позиционировать "
-            "себя должным образом и становишься мужчиной ВЫСОКОЙ ЦЕННОСТИ и вооружаешься всеми видами манипуляций, "
-            "а также техниками НЛП. \n\n"
-            "<b>— ТЕЛО. ЗДОРОВЬЕ. СПОРТ</b>\n"
-            "Приводишь в порядок свое здоровье, тело, соц. сети — это истинное проявление заботы и любви о себе в первую очередь. "
-            "Составишь программу тренировок или похудения. Так же получаешь знания о своей гормональной системе и избавляешься "
-            "от всей вредной хуйни по типу алкоголя, сигарет. \n\n"
-            "<b>— СТИЛЬ. УХОД ЗА СОБОЙ</b>\n"
-            "Создаешь свой утонченный стиль, подбираешь духи, приводишь в порядок свою привлекательность и до конца жизни выглядишь "
-            "пиздато, данная информация экономит огромные деньги, ведь грамотно подбираешь себе гардероб/духи/средства ухода.\n\n"
-            "<b>— ПРЯМЫЕ ЭФИРЫ</b>\n"
-            "Ко всему сказанному, делюсь своим жизненным опытом, как преодолевал препятствия и откуда брал веру в свои силы. "
-            "Регулярно проводятся эфиры с разбором подписчиков, чтобы вытащить/развить человека конкретно в его ситуации. \n\n"
-            "✅ Более 1000 постов в свободном доступе"
-        )
+        caption = config.text.vip_division_caption
 
         sent_caption = await call.message.answer(caption, reply_markup=vip_division_keyboard("menu"))
         message_ids.append(sent_caption.message_id)
@@ -586,14 +461,7 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
             repo = RequestsRepo(session)
             plans = await repo.plans.get_all_plans()
 
-        text = (
-            "<b>ЭТО САМОЕ ЛУЧШЕЕ что есть в интернете и один только вопрос, сколько стоит?</b>\n\n"
-            "<b>46 ₽ в день или 1390 в месяц</b>\n\n"
-            "<b>НИ ОДНОГО ПЛОХОГО ОТЗЫВА, это можно считать выдумкой, но это ФАКТ, люди меняют свою жизнь на 180 градусов уже за неделю чтения.</b>\n\n"
-            "<b>3 месяца — <s>4.190</s> 3790 рублей (10% скидка)</b>\n"
-            "<b>9 месяцев — <s>12.510</s> 9990 рублей (20% скидка)</b>\n\n"
-            "<b>Выбирай удобный тариф и начинай работу.</b>"
-        )
+        text = config.text.tariffs_message
         sent_message = await bot.send_message(chat_id=call.message.chat.id, text=text,
                                               reply_markup=subscription_keyboard("menu", plans))
         await state.update_data(message_ids=[sent_message.message_id])

@@ -1,5 +1,11 @@
 import hashlib
+import uuid
+
+import pyqrcode
 import requests
+import matplotlib.pyplot as plt
+from PIL import Image
+
 
 def generate_payment_link(client_id, order_id, products, secret_key, linktoform):
     """
@@ -139,6 +145,17 @@ def process_payment(binding_id, client_id, sys, secret_key, api_url):
         return response_data
     except requests.exceptions.RequestException as e:
         return {"success": False, "error": str(e)}
+
+def generate_qr_code(link: str):
+    unique_filename = f"qr_code_{uuid.uuid4().hex}.png"
+
+    # Create the QR code
+    qr_code = pyqrcode.create(link)
+
+    # Save the QR code as a PNG file
+    qr_code.png(unique_filename, scale=10)
+
+    return unique_filename
 
 # # Пример использования
 # secret_key = "your_secret_key_for_token_payment"

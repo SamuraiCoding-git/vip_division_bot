@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
-from sqlalchemy import ForeignKey, BIGINT, DateTime, Float, Boolean
+from sqlalchemy import ForeignKey, BIGINT, DateTime, Float, Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infrastructure.database.models.base import TableNameMixin, TimestampMixin, Base
@@ -13,6 +13,7 @@ class Order(Base, TimestampMixin, TableNameMixin):
     plan_id: Mapped[int] = mapped_column(BIGINT, ForeignKey("plans.id"), nullable=False)
     total_price: Mapped[float] = mapped_column(Float, nullable=False)
     is_paid: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    hash: Mapped[str] = mapped_column(String, nullable=True)
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="orders")

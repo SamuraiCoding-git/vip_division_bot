@@ -150,6 +150,18 @@ class MediaConfig:
     guides_seduction_file_id: str
     vip_division_photos: List[str]
     guide_animation: str
+    questions_photo: str
+    texting_guide_file_id: str
+    texting_guide_animation: str
+    photo_1: str
+    photo_2: str
+    media_group_photos: List[str]
+    reading_1651_photo: str
+    reading_1735_photo: str
+    video_note: str
+    video_file: str
+    sed_video_animation: str
+    sed_photo_1: str
 
     @staticmethod
     def from_env(env: Env) -> "MediaConfig":
@@ -172,6 +184,22 @@ class MediaConfig:
             guides_texting_file_id=env.str("GUIDES_TEXTING_FILE_ID"),
             guides_seduction_file_id=env.str("GUIDES_SEDUCTION_FILE_ID"),
             guide_animation=env.str("GUIDE_ANIMATION"),
+            questions_photo=env.str("QUESTIONS_PHOTO"),
+            texting_guide_file_id=env.str("TEXTING_GUIDE_FILE_ID"),
+            texting_guide_animation=env.str("TEXTING_GUIDE_ANIMATION"),
+            photo_1=env.str("PHOTO_1"),
+            photo_2=env.str("PHOTO_2"),
+            media_group_photos=[
+                env.str("MEDIA_GROUP_PHOTO_1"),
+                env.str("MEDIA_GROUP_PHOTO_2"),
+                env.str("MEDIA_GROUP_PHOTO_3"),
+            ],
+            reading_1651_photo=env.str("READING_1651_PHOTO"),
+            reading_1735_photo=env.str("READING_1735_PHOTO"),
+            video_note=env.str("VIDEO_NOTE"),
+            video_file=env.str("VIDEO_FILE"),
+            sed_video_animation=env.str("SED_VIDEO_ANIMATION"),
+            sed_photo_1=env.str("SED_PHOTO_1"),
         )
 
 
@@ -193,6 +221,13 @@ class TextConfig:
     chat_caption: str
     payment_success_message: str
     payment_inactive_message: str
+    texting_guide_intro: str
+    texting_guide_caption: str
+    texting_guide_advantages: str
+    texting_guide_base: str
+    dialogue_analysis_text: str
+    media_group_caption: str
+    performance_text: str
 
     @staticmethod
     def from_env(env: Env) -> "TextConfig":
@@ -213,7 +248,15 @@ class TextConfig:
             chat_caption=env.str("CHAT_CAPTION"),
             payment_success_message=env.str("PAYMENT_SUCCESS_MESSAGE"),
             payment_inactive_message=env.str("PAYMENT_INACTIVE_MESSAGE"),
+            texting_guide_intro=env.str("TEXTING_GUIDE_INTRO"),
+            texting_guide_caption=env.str("TEXTING_GUIDE_CAPTION"),
+            texting_guide_advantages=env.str("TEXTING_GUIDE_ADVANTAGES"),
+            texting_guide_base=env.str("TEXTING_GUIDE_BASE"),
+            dialogue_analysis_text=env.str("DIALOGUE_ANALYSIS_TEXT"),
+            media_group_caption=env.str("MEDIA_GROUP_CAPTION"),
+            performance_text=env.str("PERFORMANCE_TEXT"),
         )
+
 
 
 
@@ -221,6 +264,8 @@ class TextConfig:
 class Miscellaneous:
     private_channel_id: str
     private_chat_id: str
+    payment_form_url: str
+    tron_wallet: str
     other_params: Optional[str] = None
 
     @staticmethod
@@ -228,6 +273,8 @@ class Miscellaneous:
         return Miscellaneous(
             private_channel_id=env.str("PRIVATE_CHANNEL_ID"),
             private_chat_id=env.str("PRIVATE_CHAT_ID"),
+            payment_form_url=env.str("PAYMENT_FORM_URL"),
+            tron_wallet=env.str("TRON_WALLET"),
             other_params=env.str("OTHER_PARAMS", default=None),
         )
 
