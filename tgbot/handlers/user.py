@@ -508,6 +508,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
         ]
     ])
     for user in users:
+        print("Началось")
         try:
              await bot.send_photo(user, photo, caption=caption, reply_markup=keyboard)
              print("успех")
