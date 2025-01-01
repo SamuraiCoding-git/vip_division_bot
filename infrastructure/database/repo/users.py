@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from infrastructure.database.models import User
@@ -51,3 +51,21 @@ class UserRepo(BaseRepo):
         query = select(User).filter(User.id == user_id)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+
+    async def update_plan_id(self, user_id: int, new_plan_id: int) -> User:
+        # Create the update statement
+        update_stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(plan_id=new_plan_id)
+            .returning(User)
+        )
+
+        # Execute the update
+        result = await self.session.execute(update_stmt)
+
+        # Commit the transaction
+        await self.session.commit()
+
+        # Return the updated user object
+        return result.scalar_one()

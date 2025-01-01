@@ -575,7 +575,10 @@ async def guides(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data
 
 @user_router.callback_query(F.data == "pay_crypto")
 async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot):
-    pass
+    data = await state.get_data()
+
+    usd_price = int(data.get("usd_price"))
+
 
 
 @user_router.callback_query(BackCallbackData.filter())
