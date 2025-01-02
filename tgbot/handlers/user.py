@@ -464,7 +464,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
             await bot.forward_message(user, message.chat.id, message.message_id)
         except:
             pass
-        await asyncio.sleep(0.33)
+        await asyncio.sleep(0.03)
 
     await asyncio.sleep(900)
 
@@ -485,7 +485,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
             await bot.send_message(user, text, reply_markup=keyboard, parse_mode='HTML')
         except:
             pass
-        await asyncio.sleep(0.33)
+        await asyncio.sleep(0.03)
     await message.answer("Рассылка завершена")
 
 @user_router.callback_query(BackCallbackData.filter())
