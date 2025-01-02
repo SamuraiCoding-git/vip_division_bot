@@ -465,6 +465,27 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
         except:
             pass
         await asyncio.sleep(0.33)
+
+    await asyncio.sleep(900)
+
+    text = (
+        "За 2 дня парень меняет подход общения, и девушка сама теперь проявляет инициативу.\n\n"
+        "Все про переписки, общения с девушками внутри закрытого канала.\n\n"
+        "Вход от 37 рублей в день, забирай."
+    )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Забрать доступ", callback_data="view_tariffs")
+        ]
+    ])
+
+    for user in users:
+        try:
+            await bot.send_message(user, text, reply_markup=keyboard, parse_mode='HTML')
+        except:
+            pass
+        await asyncio.sleep(0.33)
     await message.answer("Рассылка завершена")
 
 @user_router.callback_query(BackCallbackData.filter())
