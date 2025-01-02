@@ -347,7 +347,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
             days_remaining = 0
         # Prepare the message text based on subscription status
         if days_remaining > 0:
-            text = config.text.payment_success_message.replace("${days_remaining}", str(days_remaining))
+            text = config.text.payment_success_message.replace("{days_remaining}", str(days_remaining))
             sent_message = await bot.send_message(chat_id=chat_id, text=text,
                                                   reply_markup=my_subscription_keyboard(state="menu",
                                                                                         is_sub=True,
