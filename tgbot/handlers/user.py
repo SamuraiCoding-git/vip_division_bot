@@ -377,6 +377,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
 
+    print(plan.name)
     print(config.text.tariff_caption.replace("${plan.name}", plan.name))
 
     text = config.text.tariff_caption.replace("${plan.name}", plan.name).replace("${price_text}", price_text).replace("${plan.name[:-2]}", str(plan.name[:-2]))
