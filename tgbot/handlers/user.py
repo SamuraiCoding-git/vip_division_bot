@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, InlineKeyboardMarkup, \
     InlineKeyboardButton, InputFile, FSInputFile
 from aiogram.utils.markdown import hlink
+from matplotlib.colors import cnames
 
 from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
@@ -376,6 +377,8 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
+
+    print(config.text.tariff_caption)
 
     text = config.text.tariff_caption.replace("{plan.name}", plan.name).replace("{price_text}", price_text).replace("{plan.name[:-2]}", str(plan.name[:-2]))
 
