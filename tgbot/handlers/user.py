@@ -453,8 +453,6 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 async def message_mailing(message: Message, config: Config, bot: Bot):
     if message.from_user.id != 422999166:
         return
-    if not message.forward_from:
-        return
     await message.answer("Рассылка началась.")
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
