@@ -449,6 +449,24 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
     await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
 
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    if not message.forward_from:
+        return
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        users = await repo.orders.get_users_with_unpaid_orders()
+    for user in users:
+        try:
+            await bot.forward_message(user, message.chat.id, message.message_id)
+        except:
+            pass
+        await asyncio.sleep(0.33)
+    await message.answer("Рассылка завершена")
+
 @user_router.callback_query(BackCallbackData.filter())
 async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, bot: Bot, state: FSMContext, config: Config):
     await delete_messages(bot=call.bot, chat_id=call.message.chat.id, state=state)
