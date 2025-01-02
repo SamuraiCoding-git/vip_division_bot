@@ -455,6 +455,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
         return
     if not message.forward_from:
         return
+    await message.answer("Рассылка началась.")
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
         repo = RequestsRepo(session)
