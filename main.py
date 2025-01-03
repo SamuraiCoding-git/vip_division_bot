@@ -100,7 +100,7 @@ async def process_request():
 
         # Проверка корректности плана подписки
         order = await repo.orders.get_order_by_id(int(form_dict['order_num']))
-        await repo.orders.update_order_payment_status(int(form_dict['order_num']), True, int(form_dict['binding_id']))
+        await repo.orders.update_order_payment_status(int(form_dict['order_num']), True, form_dict['binding_id'])
         plan_id = order.plan_id
         await repo.users.update_plan_id(chat_id, int(plan_id))
         if plan_id not in PHOTO_ID_DICT:
