@@ -500,39 +500,37 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot):
         await call.answer("Транзакция ещё не подтверждена!")
 
 
-# @user_router.message()
-# async def message_mailing(message: Message, config: Config, bot: Bot):
-#     if message.from_user.id != 422999166:
-#         return
-#     await message.answer("Рассылка началась.")
-#     session_pool = await create_session_pool(config.db)
-#     async with session_pool() as session:
-#         repo = RequestsRepo(session)
-#         users = await repo.orders.get_users_with_unpaid_orders()
-#
-#     text = (
-#         "ты там живой? \n"
-#         "Я уверен, ты круто отметил новый год, наполнился энергией и эмоциями.\n\n"
-#         "Появились силы на достижение новых целей, так оправдай свои ожидания, сделай этот год максимально качественным.\n\n"
-#         "<b>Ты можешь сделать так, что будешь вспоминать этот момент, когда принял решение максимально реализоваться в этой жизни.  "
-#         "Тот самый поворотный момент, когда ты вступил в приватный канал, и твоя жизнь начала меняться с фантастической скоростью.</b>\n\n"
-#         "Один выбор, между оливье и приваткой.\n\n"
-#         "Многие уже привыкли жить, соглашаясь на меньшее в жизни, но я уверен, что ты не из их числа.\n\n"
-#     )
-#
-#     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-#         [
-#             InlineKeyboardButton(text="ВЫБРАТЬ ЛУЧШИЙ ГОД В ЖИЗНИ", callback_data="view_tariffs")
-#         ]
-#     ])
-#
-#     for user in users:
-#         try:
-#             await bot.send_message(user, text, reply_markup=keyboard, parse_mode='HTML')
-#         except:
-#             pass
-#         await asyncio.sleep(0.03)
-#     await message.answer("Рассылка завершена")
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    await message.answer("Рассылка началась.")
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        users = await repo.orders.get_users_with_unpaid_orders()
+
+    text = (
+        "Успей пока не поздно\n\n"
+        "<b>Не трать время впустую, лучше заплатить и применять, чем жалеть и ошибаться.</b>\n\n"
+        "Подробнее про закрытый клуб по кнопке ниже 👇🏽"
+    )
+
+    photo = "AgACAgIAAxkBAALkrmd4F9XfOLCtZhkLm7fis3UyZ5d0AAJQ7DEbQzDBSzgph-OcDOk-AQADAgADeQADNgQ"
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Подробнее про приватку", callback_data="about_vip_division")
+        ]
+    ])
+
+    for user in users:
+        try:
+            await bot.send_photo(user, photo, caption=text, reply_markup=keyboard, parse_mode='HTML')
+        except:
+            pass
+        await asyncio.sleep(0.03)
+    await message.answer("Рассылка завершена")
 
 @user_router.callback_query(BackCallbackData.filter())
 async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, bot: Bot, state: FSMContext, config: Config):
