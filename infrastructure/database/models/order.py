@@ -13,7 +13,7 @@ class Order(Base, TimestampMixin, TableNameMixin):
     total_price: Mapped[float] = mapped_column(Float, nullable=False)
     is_paid: Mapped[bool] = mapped_column(Boolean, nullable=False)
     hash: Mapped[str] = mapped_column(String, nullable=True)
-    binding_id: Mapped[int] = mapped_column(BIGINT)
+    binding_id: Mapped[str] = mapped_column(String)
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="orders")
