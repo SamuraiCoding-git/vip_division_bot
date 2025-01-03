@@ -344,3 +344,32 @@ def crypto_pay_link(state):
         ]
     ])
     return keyboard
+
+def crypto_pay_check_keyboard(state):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="Я ОПЛАТИЛ ✅",
+                callback_data="check_crypto_pay"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="НАЗАД ↩",
+                callback_data=BackCallbackData(state=state).pack()
+            )
+        ]
+    ])
+    return keyboard
+
+def join_resources_keyboard(channel_invite_link, chat_invite_link):
+    buttons = [
+        [
+            InlineKeyboardButton(text="🔺 ВСТУПИТЬ В КАНАЛ", url=channel_invite_link)
+        ],
+        [
+            InlineKeyboardButton(text="🔺 ВСТУПИТЬ В ЧАТ", url=chat_invite_link)
+        ]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard

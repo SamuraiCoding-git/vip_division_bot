@@ -1,13 +1,12 @@
 import asyncio
+import re
+from datetime import datetime, timedelta
 
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
-from datetime import datetime, timedelta
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, InlineKeyboardMarkup, \
-    InlineKeyboardButton, InputFile, FSInputFile
-from aiogram.utils.markdown import hlink
-from matplotlib.colors import cnames
+    InlineKeyboardButton, FSInputFile
 
 from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
@@ -20,9 +19,11 @@ from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallback
 from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, menu_keyboard, vip_division_keyboard, \
     access_payment_keyboard, story_keyboard, subscription_keyboard, reviews_payment_keyboard, experts_keyboard, \
     assistant_keyboard, access_keyboard, my_subscription_keyboard, guide_keyboard, pagination_keyboard, guides_keyboard, \
-    pay_keyboard, crypto_pay_link
+    pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard
+from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, handle_seduction_deeplink
 from tgbot.utils.payment_utils import generate_payment_link, generate_qr_code
+from tgbot.utils.sub_utils import get_transaction_confirmations
 
 user_router = Router()
 
@@ -66,7 +67,7 @@ async def read_article(call: CallbackQuery, state: FSMContext, config: Config):
 
 
 @user_router.message(CommandStart(deep_link=True))
-async def user_deeplink(message: Message, command: CommandObject):
+async def user_deeplink(message: Message, command: CommandObject, config: Config):
     text = config.text.mailing_consent_message
     await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
 
@@ -74,7 +75,7 @@ async def user_deeplink(message: Message, command: CommandObject):
 @user_router.callback_query(F.data == "get_guide")
 async def get_guide(call: CallbackQuery, state: FSMContext, bot: Bot):
     await state.update_data(guide_clicked=True)
-    await handle_seduction_deeplink(call)
+    await handle_seduction_deeplink(call, config)
 
 
 
@@ -364,6 +365,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
 @user_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
+    await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
         repo = RequestsRepo(session)
@@ -378,11 +380,12 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
 
-    print(config.text.tariff_caption)
 
     text = config.text.tariff_caption.replace("{plan.name}", plan.name).replace("{price_text}", price_text).replace("{plan.name[:-2]}", str(plan.name[:-2]))
 
     await state.update_data(usd_price=plan.usd_price)
+    await state.update_data(plan_id=plan.id)
+    await state.update_data(order_id=order.id)
 
     product = [
         {
@@ -395,7 +398,8 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
 
     link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
 
-    await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
+    sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
+    await state.update_data(message_ids=[sent_message.message_id])
 
 @user_router.callback_query(F.data == "guide")
 async def guide(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
@@ -432,22 +436,69 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
     await delete_messages(bot, chat_id=call.message.chat.id, state=state)
 
     data = await state.get_data()
-
     usd_price = int(data.get("usd_price"))
-
     trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
-
-    print(trust_wallet_link)
-
     path = generate_qr_code(trust_wallet_link)
-
     qr_code_png = FSInputFile(path)
 
     caption = (f"Адрес: {config.misc.tron_wallet}\n"
                f"Стоимость: {usd_price}$\n\n"
                f"Отправьте хэш транзакции:")
 
-    await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
+    sent_message = await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
+    await state.update_data(message_ids=[sent_message.message_id])
+
+
+@user_router.message(UsdtTransaction.hash)
+async def usdt_transaction_hash(message: Message, state: FSMContext, bot: Bot):
+    await delete_messages(bot, chat_id=message.chat.id, state=state)
+    hash_text = message.text.strip()
+
+    tron_hash_pattern = r'^[a-f0-9]{64}$'
+
+    if re.match(tron_hash_pattern, hash_text):
+        sent_message = await message.answer(
+            "После подтверждения транзакции 20 блоками - нажми на кнопку.",
+                 reply_markup=crypto_pay_check_keyboard("tariffs"))
+    else:
+        sent_message = await message.answer(
+            "Неверный хэш транзакции Tron."
+            "Отправьте ещё раз")
+        await state.update_data(message_ids=[sent_message.message_id])
+        return
+    await state.update_data(hash=hash_text)
+    await state.update_data(message_ids=[sent_message.message_id])
+
+
+@user_router.callback_query(F.data == "check_crypto_pay")
+async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot):
+    await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+    data = await state.get_data()
+    hash = data.get("hash")
+    result = get_transaction_confirmations(hash)
+    if result:
+        caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
+        PHOTO_ID_DICT = {
+            1: "AgACAgIAAxkBAALEjGdy0mrDQWi18wFpYoZq9NVA2TqjAAKV6TEbOoaJS4n3s7ggUnRgAQADAgADeQADNgQ",
+            2: "AgACAgIAAxkBAALEimdy0mogvij5Ftf2H8gl35umq8q3AAKS6TEbOoaJSyo0D53HGSccAQADAgADeQADNgQ",
+            3: "AgACAgIAAxkBAALVIGdz6Q6rehB64Lr3d9PdSyHCntiHAAKy5jEb3eahS01IU1EPEcbzAQADAgADeQADNgQ",
+            4: "AgACAgIAAxkBAALEi2dy0mq9sEozgl_G_TSMMQTr6Xv4AAKT6TEbOoaJS3CNhv-ILUFiAQADAgADeQADNgQ"
+        }
+        await repo.users.update_plan_id(call.message.chat.id, int(data['plan_id']))
+        await repo.orders.update_order_payment_status(int(data['order_id']), True)
+        await call.message.answer_photo(
+                                  photo=PHOTO_ID_DICT[int(data['plan_id'])],
+                                  caption=caption,
+                                  reply_markup=join_resources_keyboard(
+                                      create_invite_link(config.misc.private_channel_id),
+                                      create_invite_link(config.misc.private_chat_id)
+                                  ))
+    else:
+        await call.answer("Транзакция ещё не подтверждена!")
+
 
 @user_router.message()
 async def message_mailing(message: Message, config: Config, bot: Bot):
@@ -458,24 +509,20 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         users = await repo.orders.get_users_with_unpaid_orders()
-    for user in users:
-        try:
-            await bot.forward_message(user, message.chat.id, message.message_id)
-        except:
-            pass
-        await asyncio.sleep(0.03)
-
-    await asyncio.sleep(900)
 
     text = (
-        "За 2 дня парень меняет подход общения, и девушка сама теперь проявляет инициативу.\n\n"
-        "Все про переписки, общения с девушками внутри закрытого канала.\n\n"
-        "Вход от 37 рублей в день, забирай."
+        "ты там живой? \n"
+        "Я уверен, ты круто отметил новый год, наполнился энергией и эмоциями.\n\n"
+        "Появились силы на достижение новых целей, так оправдай свои ожидания, сделай этот год максимально качественным.\n\n"
+        "<b>Ты можешь сделать так, что будешь вспоминать этот момент, когда принял решение максимально реализоваться в этой жизни.  "
+        "Тот самый поворотный момент, когда ты вступил в приватный канал, и твоя жизнь начала меняться с фантастической скоростью.</b>\n\n"
+        "Один выбор, между оливье и приваткой.\n\n"
+        "Многие уже привыкли жить, соглашаясь на меньшее в жизни, но я уверен, что ты не из их числа.\n\n"
     )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="Забрать доступ", callback_data="view_tariffs")
+            InlineKeyboardButton(text="ВЫБРАТЬ ЛУЧШИЙ ГОД В ЖИЗНИ", callback_data="view_tariffs")
         ]
     ])
 
