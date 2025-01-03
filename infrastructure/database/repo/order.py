@@ -53,17 +53,22 @@ class OrderRepo:
         result = await self.session.execute(select(Order).filter(Order.user_id == user_id))
         return result.scalars().all()
 
-    async def update_order_payment_status(self, order_id: int, is_paid: bool) -> Optional[Order]:
+    async def update_order_payment_status(self, order_id: int, is_paid: bool, binding_id: Optional[int] = None) -> Optional[Order]:
         """
-        Updates the payment status of an order.
+        Updates the payment status of an order and optionally sets the binding_id.
         :param order_id: The ID of the order to update.
         :param is_paid: The new payment status of the order.
+        :param binding_id: The new binding ID to set, if any.
         :return: The updated Order object or None if not found.
         """
+        values = {"is_paid": is_paid}
+        if binding_id is not None:
+            values["binding_id"] = binding_id
+
         result = await self.session.execute(
             update(Order)
             .where(Order.id == order_id)
-            .values(is_paid=is_paid)
+            .values(**values)
             .returning(Order)
         )
         await self.session.commit()
