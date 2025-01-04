@@ -59,6 +59,27 @@ def send_telegram_photo(chat_id, photo_id, caption, buttons=None):
         return False
 
 
+def send_telegram_video(chat_id, video_id, caption, buttons=None):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendVideo"
+        payload = {
+            "chat_id": chat_id,
+            "video": video_id,
+            "caption": caption,
+            "parse_mode": "HTML"  # Optional: For formatting the message
+        }
+        if buttons:
+            payload["reply_markup"] = json.dumps({"inline_keyboard": buttons})
+
+        response = requests.post(url, json=payload)
+        if not response.ok:
+            print(f"Failed to send video: {response.text}")
+        return response.ok
+    except Exception as e:
+        print(f"Failed to send video: {e}")
+        return False
+
+
 def create_invite_link(target_chat_id):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
@@ -130,6 +151,28 @@ async def process_request():
         if not send_telegram_photo(chat_id, photo_id, caption, buttons):
             raise ValueError('Failed to send notification to user')
 
+        VIDEO_FILE_ID = "BAACAgIAAxkBAALmHGd4rRnMKnmvZnp2ziGvf9VqZZsUAAJcXQACQzDJS1VissnlL4f0NgQ"
+
+        caption = (
+            f"{user.full_name}, приветствуем тебя, бро, ты попал в лучшее мужское комьюнити 🤝\n\n"
+            "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
+            "Я знаю как тебе это дать!\n\n"
+            "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
+            "В закрепе канала ты найдёшь:\n"
+            "1 — первый пост (начни с него)\n"
+            "2 — навигацию по темам для удобства и поиска информации (в описании канала)\n"
+            "3 — Не забудь вступить в ЧАТ для общения с парнями\n\n"
+            "Переходи по кнопке ИНСТРУКЦИЯ для новичка и начинай собирать эту жизнь!"
+        )
+
+        buttons = [
+            [
+                {"text": "1️⃣ Изучить для начала", "url": "https://telegra.ph/S-chego-nachat-chitat-privatnyj-kanal-12-23"}
+            ]
+        ]
+
+        if not send_telegram_video(chat_id, VIDEO_FILE_ID, caption, buttons):
+            raise ValueError('Failed to send video to user')
         # Успешный ответ
         return jsonify({'message': 'success'}), 200
 
