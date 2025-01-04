@@ -519,37 +519,39 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot):
         await call.answer("Транзакция ещё не подтверждена!")
 
 
-# @user_router.message()
-# async def message_mailing(message: Message, config: Config, bot: Bot):
-#     if message.from_user.id != 422999166:
-#         return
-#     await message.answer("Рассылка началась.")
-#     session_pool = await create_session_pool(config.db)
-#     async with session_pool() as session:
-#         repo = RequestsRepo(session)
-#         users = await repo.orders.get_users_with_unpaid_orders()
-#
-#     text = (
-#         "Успей пока не поздно\n\n"
-#         "<b>Не трать время впустую, лучше заплатить и применять, чем жалеть и ошибаться.</b>\n\n"
-#         "Подробнее про закрытый клуб по кнопке ниже 👇🏽"
-#     )
-#
-#     photo = "AgACAgIAAxkBAALkrmd4F9XfOLCtZhkLm7fis3UyZ5d0AAJQ7DEbQzDBSzgph-OcDOk-AQADAgADeQADNgQ"
-#
-#     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-#         [
-#             InlineKeyboardButton(text="Подробнее про приватку", callback_data="about_vip_division")
-#         ]
-#     ])
-#
-#     for user in users:
-#         try:
-#             await bot.send_photo(user, photo, caption=text, reply_markup=keyboard, parse_mode='HTML')
-#         except:
-#             pass
-#         await asyncio.sleep(0.03)
-#     await message.answer("Рассылка завершена")
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    await message.answer("Рассылка началась.")
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        users = await repo.orders.get_users_with_unpaid_orders()
+
+    text = (
+        "Ну что, погнали нахуй\n\n"
+        "<b>НОВОГОДНИЙ ВЫПУСК</b>\n\n"
+        "https://youtu.be/QgdieC-dEDA?si=C8jNNKZlFD0X_K-B\n\n"
+        "Не представляете сколько сил ушло на восстановление технических моментов, чтобы вы увидели это сегодня.\n\n"
+        "Все на ютуб, смотрим🔥"
+    )
+
+    photo = "AgACAgIAAxkBAALm32d5Pd8Kobgh0xcMbe8HGGWEVwFfAAJ35DEbD57ISz9Dl9dXLMghAQADAgADeQADNgQ"
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Смотреть шоу ❗️", url="https://youtu.be/QgdieC-dEDA?si=C8jNNKZlFD0X_K-B")
+        ]
+    ])
+
+    for user in users:
+        try:
+            await bot.send_photo(user, photo, caption=text, reply_markup=keyboard, parse_mode='HTML')
+        except:
+            pass
+        await asyncio.sleep(0.03)
+    await message.answer("Рассылка завершена")
 
 @user_router.callback_query(BackCallbackData.filter())
 async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, bot: Bot, state: FSMContext, config: Config):
