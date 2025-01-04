@@ -122,7 +122,7 @@ async def handle_texting_deeplink(call: CallbackQuery, state: FSMContext, config
         )
         await call.message.answer(text, reply_markup=get_guide_keyboard("Читать ГАЙД ✅"))
 
-async def handle_seduction_deeplink(call: CallbackQuery, config: Config):
+async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, config: Config):
     video_note = config.media.video_note
     video_file = config.media.video_file
     try:
@@ -146,12 +146,14 @@ async def handle_seduction_deeplink(call: CallbackQuery, config: Config):
     await call.message.answer_photo(photo_1, reply_markup=pagination_keyboard(1))
     await asyncio.sleep(1500)
 
-    text = config.text.texting_guide_advantages
+    text = config.text.texting_guide_caption
     animation = config.media.guide_animation
     await call.message.answer_video(animation, caption=text)
     await asyncio.sleep(3600)
 
-
+    data = await state.get_data()
+    if not data.get("reading_1735_2_clicked"):
+        pass
 
 
 async def send_consent_request(call: CallbackQuery, state: FSMContext):

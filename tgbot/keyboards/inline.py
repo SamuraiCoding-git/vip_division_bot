@@ -320,8 +320,7 @@ def pay_keyboard(payment_link, state):
         [
             InlineKeyboardButton(
                 text="ОПЛАТИТЬ КРИПТОЙ USDT (TRC 20)",
-                url="https://t.me/vipdivision"
-                # callback_data="pay_crypto"
+                callback_data="pay_crypto"
             )
         ],
         [
@@ -373,3 +372,13 @@ def join_resources_keyboard(channel_invite_link, chat_invite_link):
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
+
+
+def instruction_keyboard():
+    buttons = [
+        InlineKeyboardButton(text="1️⃣ Изучить для начала", url="https://telegra.ph/S-chego-nachat-chitat-privatnyj-kanal-12-23")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+

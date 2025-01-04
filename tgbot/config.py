@@ -176,6 +176,8 @@ class MediaConfig:
             pagination_photos=[
                 env.str("PAGINATION_PHOTO_1"),
                 env.str("PAGINATION_PHOTO_2"),
+                env.str("PAGINATION_PHOTO_3"),
+                env.str("PAGINATION_PHOTO_4"),
             ],
             vip_division_photos=[
                 env.str("VIP_DIVISION_PHOTO_1"),
@@ -228,6 +230,7 @@ class TextConfig:
     dialogue_analysis_text: str
     media_group_caption: str
     performance_text: str
+    ready_text: str
 
     @staticmethod
     def from_env(env: Env) -> "TextConfig":
@@ -255,6 +258,7 @@ class TextConfig:
             dialogue_analysis_text=env.str("DIALOGUE_ANALYSIS_TEXT"),
             media_group_caption=env.str("MEDIA_GROUP_CAPTION"),
             performance_text=env.str("PERFORMANCE_TEXT"),
+            ready_text=env.str("READY_TEXT"),
         )
 
 

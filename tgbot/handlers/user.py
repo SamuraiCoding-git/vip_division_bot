@@ -19,7 +19,7 @@ from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallback
 from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, menu_keyboard, vip_division_keyboard, \
     access_payment_keyboard, story_keyboard, subscription_keyboard, reviews_payment_keyboard, experts_keyboard, \
     assistant_keyboard, access_keyboard, my_subscription_keyboard, guide_keyboard, pagination_keyboard, guides_keyboard, \
-    pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard
+    pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard, instruction_keyboard
 from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, handle_seduction_deeplink
 from tgbot.utils.payment_utils import generate_payment_link, generate_qr_code
@@ -94,11 +94,16 @@ async def handle_pagination(call: CallbackQuery, callback_data: PaginationCallba
         current_page = 1
 
     # Define the media for each page
-    photos = {
-        "1": InputMediaPhoto(media=config.media.pagination_photos[0]),
-        "2": InputMediaPhoto(media=config.media.pagination_photos[1])
-    }
-
+    if call.message.video.file_id in config.media.pagination_photos[:2]:
+        photos = {
+            "1": InputMediaPhoto(media=config.media.pagination_photos[0]),
+            "2": InputMediaPhoto(media=config.media.pagination_photos[1])
+        }
+    else:
+        photos = {
+            "1": InputMediaPhoto(media=config.media.pagination_photos[2]),
+            "2": InputMediaPhoto(media=config.media.pagination_photos[3])
+        }
     # Generate the pagination keyboard
     keyboard = pagination_keyboard(current_page)
 
@@ -496,6 +501,20 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot):
                                       create_invite_link(config.misc.private_channel_id),
                                       create_invite_link(config.misc.private_chat_id)
                                   ))
+        VIDEO_FILE_ID = "BAACAgIAAxkBAALmHGd4rRnMKnmvZnp2ziGvf9VqZZsUAAJcXQACQzDJS1VissnlL4f0NgQ"
+
+        caption = (
+            f"{call.message.chat.full_name}, приветствуем тебя, бро, ты попал в лучшее мужское комьюнити 🤝\n\n"
+            "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
+            "Я знаю как тебе это дать!\n\n"
+            "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
+            "В закрепе канала ты найдёшь:\n"
+            "1 — первый пост (начни с него)\n"
+            "2 — навигацию по темам для удобства и поиска информации (в описании канала)\n"
+            "3 — Не забудь вступить в ЧАТ для общения с парнями\n\n"
+            "Переходи по кнопке ИНСТРУКЦИЯ для новичка и начинай собирать эту жизнь!"
+        )
+        await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
     else:
         await call.answer("Транзакция ещё не подтверждена!")
 
