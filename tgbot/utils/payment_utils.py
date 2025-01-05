@@ -1,11 +1,11 @@
 import hashlib
+import hmac
+import json
 import uuid
+from typing import Mapping
 
 import pyqrcode
 import requests
-import matplotlib.pyplot as plt
-from PIL import Image
-
 
 def generate_payment_link(client_id, order_id, products, secret_key, linktoform):
     """
@@ -27,48 +27,6 @@ def generate_payment_link(client_id, order_id, products, secret_key, linktoform)
         "sys": "vipdivision",
     }
 
-    # Функция для генерации подписи
-    def generate_signature(data, secret_key):
-        # Преобразование вложенных структур в строковый формат
-        def flatten(data, parent_key=""):
-            items = []
-            for key, value in data.items():
-                new_key = f"{parent_key}[{key}]" if parent_key else key
-                if isinstance(value, dict):
-                    items.extend(flatten(value, new_key).items())
-                elif isinstance(value, list):
-                    for i, item in enumerate(value):
-                        items.extend(flatten(item, f"{new_key}[{i}]").items())
-                else:
-                    items.append((new_key, str(value)))
-            return dict(items)
-
-        # Уплощение данных
-        flat_data = flatten(data)
-
-        # Сортировка параметров по ключам
-        sorted_items = sorted(flat_data.items())
-        sign_string = "&".join(f"{key}={value}" for key, value in sorted_items) + secret_key
-
-        # Генерация SHA256 подписи
-        return hashlib.sha256(sign_string.encode('utf-8')).hexdigest()
-
-    # Упрощение данных для строки запроса
-    def flatten_data(data):
-        def flatten(data, parent_key=""):
-            items = []
-            for key, value in data.items():
-                new_key = f"{parent_key}[{key}]" if parent_key else key
-                if isinstance(value, dict):
-                    items.extend(flatten(value, new_key).items())
-                elif isinstance(value, list):
-                    for i, item in enumerate(value):
-                        items.extend(flatten(item, f"{new_key}[{i}]").items())
-                else:
-                    items.append((new_key, str(value)))
-            return dict(items)
-        return flatten(data)
-
     # Генерация подписи
     signature = generate_signature(data, secret_key)
     data["sign"] = signature
@@ -89,13 +47,22 @@ def generate_payment_link(client_id, order_id, products, secret_key, linktoform)
     else:
         raise Exception(f"Ошибка при запросе: {response.status_code}, {response.text}")
 
+
 def generate_signature(data, secret_key):
-    """
-    Генерация SHA256 подписи на основе данных и секретного ключа.
-    :param data: dict, данные для подписи
-    :param secret_key: str, секретный ключ
-    :return: str, подпись
-    """
+    # Преобразование вложенных структур в строковый формат
+    # Уплощение данных
+    flat_data = flatten_data(data)
+
+    # Сортировка параметров по ключам
+    sorted_items = sorted(flat_data.items())
+    sign_string = "&".join(f"{key}={value}" for key, value in sorted_items) + secret_key
+
+    # Генерация SHA256 подписи
+    return hashlib.sha256(sign_string.encode('utf-8')).hexdigest()
+
+
+# Упрощение данных для строки запроса
+def flatten_data(data):
     def flatten(data, parent_key=""):
         items = []
         for key, value in data.items():
@@ -109,41 +76,72 @@ def generate_signature(data, secret_key):
                 items.append((new_key, str(value)))
         return dict(items)
 
-    flat_data = flatten(data)
-    sorted_items = sorted(flat_data.items())
-    sign_string = "&".join(f"{key}={value}" for key, value in sorted_items) + secret_key
-    return hashlib.sha256(sign_string.encode('utf-8')).hexdigest()
+    return flatten(data)
+
+
+def _sort(data):
+    """Recursively sort the dictionary."""
+    if isinstance(data, Mapping):
+        return {k: _sort(v) for k, v in sorted(data.items())}
+    elif isinstance(data, list):
+        return [_sort(v) for v in sorted(data)]
+    else:
+        return data
+
+
+def create(data, key, algo='sha256'):
+    """Create an HMAC signature."""
+    if algo not in hashlib.algorithms_available:
+        return False
+
+    # Ensure data is a dictionary
+    if not isinstance(data, (dict, list)):
+        data = [data]
+
+    # Convert all values to strings
+    def stringify(item):
+        if isinstance(item, dict):
+            return {k: stringify(v) for k, v in item.items()}
+        elif isinstance(item, list):
+            return [stringify(i) for i in item]
+        else:
+            return str(item)
+
+    data = stringify(data)
+
+    # Sort the data
+    data = _sort(data)
+
+    # Encode as JSON
+    json_data = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+
+    # Create the HMAC signature
+    signature = hmac.new(key.encode('utf-8'), json_data.encode('utf-8'), getattr(hashlib, algo))
+
+    return signature.hexdigest()
 
 def process_payment(binding_id, client_id, sys, secret_key, api_url):
-    """
-    Выполняет оплату по токену через API платежной формы.
-
-    :param binding_id: str, платежный токен
-    :param client_id: str, уникальный идентификатор пользователя
-    :param sys: str, код системы
-    :param secret_key: str, секретный ключ для подписи
-    :param api_url: str, URL API платежной формы
-    :return: dict, результат запроса
-    """
     data = {
         "binding_id": binding_id,
         "client_id": client_id,
-        "sys": sys
+        "sys": sys,
+        'order_sum': 1390
     }
-
     # Генерация подписи
-    signature = generate_signature(data, secret_key)
+    signature = create(data, secret_key)
     data["signature"] = signature
 
     headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/x-www-form-urlencoded"
     }
 
     try:
-        response = requests.post(api_url, headers=headers, json=data)
+        response = requests.post(api_url, headers=headers, data=data)
+        print("Response Status:", response.status_code)
+        print("Response Text:", response.text)
         response_data = response.json()
         return response_data
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         return {"success": False, "error": str(e)}
 
 def generate_qr_code(link: str):
@@ -157,12 +155,12 @@ def generate_qr_code(link: str):
 
     return unique_filename
 
-# # Пример использования
-# secret_key = "your_secret_key_for_token_payment"
-# api_url = "https://producer.payform.ru/rest/payment/do"
-# binding_id = "example_token"
-# client_id = "unique_client_id"
-# sys = "yoursystem"
-#
-# result = process_payment(binding_id, client_id, sys, secret_key, api_url)
-# print(result)
+# Пример использования
+secret_key = "d9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c"
+api_url = "https://vipdivision.payform.ru/rest/payment/do"
+binding_id = "406a979714f390e058a8c3511837e0cc"
+client_id = "422999166"
+sys = "vipdivision"
+
+result = process_payment(binding_id, client_id, sys, secret_key, api_url)
+print(result)
