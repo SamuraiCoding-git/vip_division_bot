@@ -126,4 +126,12 @@ class OrderRepo:
         )
         return result.scalars().all()
 
-
+    async def is_unique_order_hash(self, hash: str) -> bool:
+        """
+        Checks if there is already an order with the given hash.
+        :param hash: The hash to check for uniqueness.
+        :return: True if no order with the same hash exists, False otherwise.
+        """
+        result = await self.session.execute(select(Order).filter(Order.hash == hash))
+        existing_order = result.scalar_one_or_none()
+        return existing_order is None

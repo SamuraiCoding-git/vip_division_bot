@@ -446,12 +446,14 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
     path = generate_qr_code(trust_wallet_link)
     qr_code_png = FSInputFile(path)
 
+    await state.update_data(tx_date=call.message.date)
+
     caption = (f"Адрес: {config.misc.tron_wallet}\n"
                f"Стоимость: {usd_price}$\n\n"
                f"Отправьте хэш транзакции:")
 
     sent_message = await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
-    await state.set_state(UsdtTransaction.hash)
+    await state.set_state(UsdtTransaction.hash )
     await state.update_data(message_ids=[sent_message.message_id])
 
 
@@ -477,14 +479,18 @@ async def usdt_transaction_hash(message: Message, state: FSMContext, bot: Bot):
 
 
 @user_router.callback_query(F.data == "check_crypto_pay", )
-async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot):
+async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
         repo = RequestsRepo(session)
     data = await state.get_data()
     hash = data.get("hash")
-    result = get_transaction_confirmations(hash)
+    usd_price = data.get("usd_price")
+    is_unique_hash = await repo.orders.is_unique_order_hash(hash)
+    if not is_unique_hash:
+        await call.answer("Уже есть заказ с таким хэшем")
+    result = get_transaction_confirmations(hash, usd_price, config.misc.tron_wallet)
     if result:
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         PHOTO_ID_DICT = {

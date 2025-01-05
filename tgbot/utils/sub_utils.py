@@ -57,19 +57,31 @@ async def check_subscriptions(session: AsyncSession, bot: Bot):
         # Commit changes to the database after processing each order
         await session.commit()
 
-def get_transaction_confirmations(tx_hash):
-    tronscan_api_url = "https://apilist.tronscanapi.com/api/transaction-info"
-
+def normalize_usdt_price(transaction_data):
+    """
+    Normalizes the USDT price from the transaction data.
+    :param transaction_data: The transaction data containing 'trc20TransferInfo'.
+    :return: Normalized USDT price as a float.
+    """
     try:
-        response = requests.get(f"{tronscan_api_url}?hash={tx_hash}")
-        response.raise_for_status()  # Raise an HTTPError for bad responses
+        trc20_info = transaction_data.get('trc20TransferInfo', [{}])[0]  # Get the first transfer info
+        amount_str = trc20_info.get('amount_str', '0')
+        decimals = trc20_info.get('decimals', 6)  # Default to 6 decimals if not provided
+        normalized_amount = float(amount_str) / (10 ** decimals)
+        return normalized_amount
+    except (KeyError, IndexError, ValueError) as e:
+        print(f"Error normalizing USDT price: {e}")
+        return None
+
+def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
+    try:
+        response = requests.get(f"https://apilist.tronscanapi.com/api/transaction-info?hash={tx_hash}")
         transaction_data = response.json()
-        print(transaction_data)
 
-        if "confirmed" in transaction_data:
-            return transaction_data["confirmed"]
-        else:
-            return f"Transaction data not available for {tx_hash}."
+        if transaction_data.get('toAddress') == tron_wallet and transaction_data.get("confirmed", False):
+            return usd_price <= normalize_usdt_price(transaction_data)
 
-    except requests.exceptions.RequestException as e:
-        return f"An error occurred: {e}"
+        return False
+
+    except Exception:
+        return False
