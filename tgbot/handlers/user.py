@@ -478,7 +478,7 @@ async def usdt_transaction_hash(message: Message, state: FSMContext, bot: Bot):
     await state.update_data(message_ids=[sent_message.message_id])
 
 
-@user_router.callback_query(F.data == "check_crypto_pay", )
+@user_router.callback_query(F.data == "check_crypto_pay")
 async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
     session_pool = await create_session_pool(config.db)
