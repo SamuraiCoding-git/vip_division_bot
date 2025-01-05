@@ -64,6 +64,7 @@ def get_transaction_confirmations(tx_hash):
         response = requests.get(f"{tronscan_api_url}?hash={tx_hash}")
         response.raise_for_status()  # Raise an HTTPError for bad responses
         transaction_data = response.json()
+        print(transaction_data)
 
         if "confirmed" in transaction_data:
             return transaction_data["confirmed"]
