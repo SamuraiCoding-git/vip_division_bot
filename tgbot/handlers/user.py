@@ -451,6 +451,7 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
                f"Отправьте хэш транзакции:")
 
     sent_message = await call.message.answer_photo(qr_code_png, caption=caption, reply_markup=crypto_pay_link('tariffs'), parse_mode='HTML')
+    await state.set_state(UsdtTransaction.hash)
     await state.update_data(message_ids=[sent_message.message_id])
 
 
@@ -475,7 +476,7 @@ async def usdt_transaction_hash(message: Message, state: FSMContext, bot: Bot):
     await state.update_data(message_ids=[sent_message.message_id])
 
 
-@user_router.callback_query(F.data == "check_crypto_pay")
+@user_router.callback_query(F.data == "check_crypto_pay", )
 async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
     session_pool = await create_session_pool(config.db)
