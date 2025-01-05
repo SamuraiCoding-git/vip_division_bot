@@ -378,7 +378,7 @@ def instruction_keyboard():
     buttons = [
         InlineKeyboardButton(text="1️⃣ Изучить для начала", url="https://telegra.ph/S-chego-nachat-chitat-privatnyj-kanal-12-23")
     ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
     return keyboard
 
 
