@@ -497,6 +497,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
             3: "AgACAgIAAxkBAALVIGdz6Q6rehB64Lr3d9PdSyHCntiHAAKy5jEb3eahS01IU1EPEcbzAQADAgADeQADNgQ",
             4: "AgACAgIAAxkBAALEi2dy0mq9sEozgl_G_TSMMQTr6Xv4AAKT6TEbOoaJS3CNhv-ILUFiAQADAgADeQADNgQ"
         }
+        await state.clear()
         await repo.users.update_plan_id(call.message.chat.id, int(data['plan_id']))
         await repo.orders.update_order_payment_status(int(data['order_id']), True, hash=hash)
         await call.message.answer_photo(

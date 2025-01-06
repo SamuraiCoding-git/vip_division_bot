@@ -156,11 +156,11 @@ def generate_qr_code(link: str):
     return unique_filename
 
 # Пример использования
-secret_key = "d9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c"
-api_url = "https://vipdivision.payform.ru/rest/payment/do"
-binding_id = "406a979714f390e058a8c3511837e0cc"
-client_id = "422999166"
-sys = "vipdivision"
+# secret_key = "d9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c"
+# api_url = "https://vipdivision.payform.ru/rest/payment/do"
+# binding_id = "406a979714f390e058a8c3511837e0cc"
+# client_id = "422999166"
+# sys = "vipdivision"
 
-result = process_payment(binding_id, client_id, sys, secret_key, api_url)
-print(result)
+# result = process_payment(binding_id, client_id, sys, secret_key, api_url)
+# print(result)
