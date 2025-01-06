@@ -1,12 +1,10 @@
-import asyncio
 import re
 from datetime import datetime, timedelta
 
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, InlineKeyboardMarkup, \
-    InlineKeyboardButton, FSInputFile
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, FSInputFile
 
 from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
@@ -19,7 +17,8 @@ from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallback
 from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, menu_keyboard, vip_division_keyboard, \
     access_payment_keyboard, story_keyboard, subscription_keyboard, reviews_payment_keyboard, experts_keyboard, \
     assistant_keyboard, access_keyboard, my_subscription_keyboard, guide_keyboard, pagination_keyboard, guides_keyboard, \
-    pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard, instruction_keyboard
+    pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard, instruction_keyboard, \
+    ready_to_change_keyboard, community_keyboard
 from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, handle_seduction_deeplink
 from tgbot.utils.payment_utils import generate_payment_link, generate_qr_code
@@ -75,7 +74,7 @@ async def user_deeplink(message: Message, command: CommandObject, config: Config
 @user_router.callback_query(F.data == "get_guide")
 async def get_guide(call: CallbackQuery, state: FSMContext, bot: Bot):
     await state.update_data(guide_clicked=True)
-    await handle_seduction_deeplink(call, config)
+    await handle_seduction_deeplink(call, state, config)
 
 
 
@@ -558,6 +557,36 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
 #             pass
 #         await asyncio.sleep(0.03)
 #     await message.answer("Рассылка завершена")
+
+
+@user_router.callback_query(F.data == "ready_to_change")
+async def ready_to_change(call: CallbackQuery, state: FSMContext):
+    await state.update_data(ready_to_change_clicked=True)
+    text = (
+        "Именно здесь произойдет максимально эффективное развитие тебя по всем фронтам.\n\n"
+        "Закрытое сообщество мужчин, которым не похуй на себя и свою жизнь — <b>VIP DIVISION</b>\n\n"
+        "<b>СООБЩЕСТВО СОСТОИТ ИЗ:</b>\n\n"
+        "📚<b>ЗНАНИЯ</b> — практическое руководство для любого мужчины, который собирается получить от жизни ВСЁ!!!\n\n"
+        "Что в себя включает?\n\n"
+        "1) <b>СОБЛАЗНЕНИЕ. Теория/практика</b>\n"
+        "— здесь про психологию и работу мозга женщины, секс, как появляется влечение, свидания и что на них говорить, + фишки (манипуляции) на общения вживую и по переписке\n\n"
+        "2) <b>ОТНОШЕНИЯ. Найти/сохранить</b>\n"
+        "— здесь про выбор пригодной девушки для семьи, как вести себя так, чтобы страсть не пропадала, про распределение ролей, воспитание детей и просто о счастливой семейной жизни.\n\n"
+        "3) <b>МУЖЕСТВЕННОСТЬ. ДЕНЬГИ. УСПЕХ. ХАРИЗМА. МЫШЛЕНИЕ.</b>\n"
+        "— здесь ты прокачиваешь свою личность на весь свой потенциал. Сначала уничтожаешь ограничивающие убеждения, закладываешь новые сильные мысли, разжигаешь любовь к себе и миру, и на этой энергии становишься <b>ЕБЫРЕМ ПРИВАТКИ</b>.\n\n"
+        "💭<b>ЧАТ</b>\n"
+        "Знания это хорошо, но чат это место их применения и поддержки.\n\n"
+        "Сгусток тестостеронового-дружной атмосферы, где люди достигшие результатов помогут вам с вопросами, дадут дельные советы в любой сфере жизни.\n\n"
+        "Мужчины объединённых общей целью ВЫЕБАТЬ ЭТУ ЖИЗНЬ, тут рады всем, кто стремится к развитию — вот что тебе нужно.\n\n"
+        "Ты уже понял, что <b>ЭТО САМОЕ ЛУЧШЕЕ</b>, что есть в интернете и один только вопрос, сколько стоит?\n\n"
+        "46 ₽ в день / <b>жирный шрифт</b>\n"
+        "или 1390 в месяц / <b>жирный шрифт</b>\n\n"
+        "<b>НИ ОДНОГО ПЛОХОГО ОТЗЫВА</b>\n"
+        "Это можно считать выдумкой, но это ФАКТ, люди меняют свою жизнь на 180 градусов уже за неделю чтения."
+    )
+    photo = "AgACAgIAAxkBAALwSmd7rbeai71JkaICHNAtxB6n2CE4AAJb7zEbBr3ZS4VZXoog8qcCAQADAgADeQADNgQ"
+    await call.message.answer_photo(photo, text, reply_markup=community_keyboard())
+
 
 @user_router.callback_query(BackCallbackData.filter())
 async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, bot: Bot, state: FSMContext, config: Config):

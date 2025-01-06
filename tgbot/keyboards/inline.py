@@ -381,4 +381,58 @@ def instruction_keyboard():
     keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
     return keyboard
 
+def ready_to_change_keyboard():
+    buttons = [
+        InlineKeyboardButton(text="✅ Я готов и хочу изменений", callback_data="ready_to_change")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
 
+def community_keyboard():
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="💯Отзывы", url="https://t.me/castingdirectorotzyv"
+                                 )
+        ],
+        [
+            InlineKeyboardButton(
+                text="❓ ВОПРОСЫ", callback_data="questions"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="➡️ Доступ за 46 руб/месяц", callback_data="tariffs"
+            )
+        ]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+def want_too_keyboard():
+    buttons = [
+        InlineKeyboardButton(text="Хочу также ✔️", callback_data="tariffs")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    return keyboard
+
+def together_keyboard():
+    buttons = [
+        InlineKeyboardButton(text="🤝Я с вами", callback_data="tariffs")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    return keyboard
+
+def transformation_keyboard():
+    buttons = [
+        InlineKeyboardButton(text="Ты прав, я попробую 👍🏽", callback_data="tariffs")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    return keyboard
+
+def choose_tariff_keyboard():
+    buttons = [
+        InlineKeyboardButton(text="Выбрать тариф 📊", callback_data="tariffs")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    return keyboard
