@@ -167,7 +167,7 @@ async def offer_consent(call: CallbackQuery, callback_data: OfferConsentCallback
             sent_message = await call.message.answer_photo(photo, caption, reply_markup=greeting_keyboard())
             await state.update_data(message_ids=[sent_message.message_id])
         else:
-            await handle_deeplink(call, callback_data.deeplink, state)
+            await handle_deeplink(call, config, callback_data.deeplink, state)
     else:
         await send_consent_request(call, state)
 

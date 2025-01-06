@@ -24,7 +24,7 @@ async def delete_messages(bot: Bot, chat_id: int, state: FSMContext):
 
     await state.update_data(message_ids=[])
 
-async def handle_deeplink(call: CallbackQuery, deeplink: str, state):
+async def handle_deeplink(call: CallbackQuery, config, deeplink: str, state):
     deeplink_handlers = {
         "texting": handle_texting_deeplink,
         "seduction": handle_seduction_deeplink,
@@ -32,7 +32,7 @@ async def handle_deeplink(call: CallbackQuery, deeplink: str, state):
 
     handler = deeplink_handlers.get(deeplink)
     if handler:
-        await handler(call, state)
+        await handler(call, config, state)
     else:
         await call.message.answer("Неизвестный диплинк. Попробуйте ещё раз.")
 
