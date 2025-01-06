@@ -32,7 +32,7 @@ async def handle_deeplink(call: CallbackQuery, config, deeplink: str, state):
 
     handler = deeplink_handlers.get(deeplink)
     if handler:
-        await handler(call, config, state)
+        await handler(call, state, config)
     else:
         await call.message.answer("Неизвестный диплинк. Попробуйте ещё раз.")
 
