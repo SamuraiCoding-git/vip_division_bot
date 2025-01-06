@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, FSInputFile
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, FSInputFile, InlineKeyboardMarkup, \
+    InlineKeyboardButton
 
 from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
@@ -524,39 +525,34 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         await call.answer("Транзакция ещё не подтверждена!")
 
 
-# @user_router.message()
-# async def message_mailing(message: Message, config: Config, bot: Bot):
-#     if message.from_user.id != 422999166:
-#         return
-#     await message.answer("Рассылка началась.")
-#     session_pool = await create_session_pool(config.db)
-#     async with session_pool() as session:
-#         repo = RequestsRepo(session)
-#         users = await repo.orders.get_users_with_unpaid_orders()
-#
-#     text = (
-#         "Ну что, погнали нахуй\n\n"
-#         "<b>НОВОГОДНИЙ ВЫПУСК</b>\n\n"
-#         "https://youtu.be/QgdieC-dEDA?si=C8jNNKZlFD0X_K-B\n\n"
-#         "Не представляете сколько сил ушло на восстановление технических моментов, чтобы вы увидели это сегодня.\n\n"
-#         "Все на ютуб, смотрим🔥"
-#     )
-#
-#     photo = "AgACAgIAAxkBAALm32d5Pd8Kobgh0xcMbe8HGGWEVwFfAAJ35DEbD57ISz9Dl9dXLMghAQADAgADeQADNgQ"
-#
-#     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-#         [
-#             InlineKeyboardButton(text="Смотреть шоу ❗️", url="https://youtu.be/QgdieC-dEDA?si=C8jNNKZlFD0X_K-B")
-#         ]
-#     ])
-#
-#     for user in users:
-#         try:
-#             await bot.send_photo(user, photo, caption=text, reply_markup=keyboard, parse_mode='HTML')
-#         except:
-#             pass
-#         await asyncio.sleep(0.03)
-#     await message.answer("Рассылка завершена")
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    await message.answer("Рассылка началась.")
+    text = (
+        "Если бы тебе 5 лет назад сказали, что ты можешь за счет нескольких сообщений онлайн пригласить женщину к себе и заняться сексом, ты бы наверное подумал, что это чьи-то подростковые фантазии.\n\n"
+        "Но реальность такова, что — <b>90% секса можно получить вообще не выходя из дома! Да, правила игры поменялись и сейчас можно трахаться хоть каждый день с новыми девушками, обладая навыком правильной переписки.</b>\n\n"
+        "Причем тебе не нужно долго учиться, проводить тысячи переписок, тебе нужно просто повторять за мной, Я уже все для тебя приготовил.\n\n"
+        "Многие думают:\n"
+        "<blockquote><i>«Да нахуй мне эти переписки, телки дают только богатым»</i></blockquote>\n"
+        "Пизда тебе с таким мышлением, всю жизнь ты будешь в жопе, если будешь думать подобным образом.\n\n"
+        "<b>✔️ Уже 1000 парней на моих глазах начали получать результаты и делиться своими счастливыми отзывами, просто благодаря тому, что внедрили правильные техники в свои переписки. ( смотри кейс )</b>\n\n"
+        "Просто блять взял и скопировал, что Я тебе посоветовал, иногда подкрутил это чуть под себя и наслаждаешься. Или продолжай сидеть и мечтать о светлом будущем, дрочи как ебаный неудачник и завидуй тем, кто берет от жизни все.\n\n"
+        "<b>Забирай Гайд по перепискам по кнопке ниже: фишки, советы и пример моей переписки</b>"
+    )
+
+    animation = "CgACAgIAAxkBAALwamd7uHpefkWI5joWvfWZbTbYopRoAAItXwACBr3ZS34PmIVRZsV4NgQ"
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🔹 Гайд", url="https://t.me/vipdivision_bot?start=texting")
+        ]
+    ])
+
+    await bot.send_animation(chat_id=-1001699879031, caption=text, reply_markup=keyboard, animation=animation)
+
+    await message.answer("Рассылка завершена")
 
 
 @user_router.callback_query(F.data == "ready_to_change")
