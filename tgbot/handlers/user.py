@@ -517,8 +517,9 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
     usd_price = data.get("usd_price")
     is_unique_hash = await repo.orders.is_unique_order_hash(hash)
     if not is_unique_hash:
-        await call.answer("Уже есть заказ с таким хэшем")
+        await call.answer("Уже есть заказ с таким хэшем", show_alert=True)
     result = get_transaction_confirmations(hash, usd_price, config.misc.tron_wallet)
+    print()
     if result:
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         PHOTO_ID_DICT = {
@@ -552,7 +553,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         )
         await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
     else:
-        await call.answer("Транзакция ещё не подтверждена!")
+        await call.answer("Транзакция ещё не подтверждена!", show_alert=True)
 
 
 @user_router.callback_query(F.data == "ready_to_change")
