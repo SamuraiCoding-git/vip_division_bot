@@ -1,4 +1,5 @@
 import re
+import time
 from datetime import datetime, timedelta
 
 from aiogram import Router, F, Bot
@@ -248,31 +249,42 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
         repo = RequestsRepo(session)
-    users = await repo.orders.get_users_with_subscriptions_expiring_soon()
+    users = await repo.orders.get_users_with_unpaid_orders()
+
+    media_group = [
+        InputMediaPhoto(media="AgACAgIAAxkBAAL3SGd9UE3wfsGlDfEwNWhcgnuICwTxAAKc5TEb1ZfwS5mYI_pSCptZAQADAgADeAADNgQ"),
+        InputMediaPhoto(media="AgACAgIAAxkBAAL3R2d9UE1EYeBhPXFvQGBkWna2yXcnAAKb5TEb1ZfwS0agxuDpiNZzAQADAgADeQADNgQ"),
+        InputMediaPhoto(media="AgACAgIAAxkBAAL3Smd9UE3kyz-lk6HssIYs6yJ-RcNpAAKd5TEb1ZfwS-K_RG3NedvvAQADAgADeAADNgQ"),
+        InputMediaPhoto(media="AgACAgIAAxkBAAL3Rmd9UE3GKs6c6cRJIimssYktbBDAAAKa5TEb1ZfwS_ltPR5mcvEqAQADAgADeAADNgQ"),
+        InputMediaPhoto(media="AgACAgIAAxkBAAL3SWd9UE3RPnWOeKknSGUQZZ_CarbDAAKe5TEb1ZfwS3T7_fqc1lXAAQADAgADeQADNgQ")
+    ]
 
     await message.answer("Рассылка началась.")
     text = (
-        "Привет, {full_name}!\n"
-        "Через 1 день заканчивается подписка тарифа: {plan_name}\n\n"
-        "Продлевай по кнопке и продолжай соблазнять жизнь 🔥\n\n"
-        "<b>P.S. В январе от меня будет много разъебных постов и розыгрышей с подарками.</b>\n\n"
-        "Год только начался, ты обязан его разъебать!"
+        "более 100 постов на каждую тему разобраны мной от А до Я\n\n"
+        "Зачем тебе тратить время, если я все сделал за тебя?\n\n"
+        "Мой опыт + твои усилия = результат\n\n"
+        "<b>Не паникуй и перестань откладывать, просто возьми изучи только самое главное: секс, девушки, коммуникации, харизма, управление вниманием, отношения и личное развитие.</b>\n\n"
+        "За 1390 ты получаешь ВСЕ.\n\n"
+        "У тебя 2 дня. После я закрою доступ!\n\n"
+        "Успеть занять место."
     )
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Продлить подписку", callback_data="tariffs")
+            InlineKeyboardButton(text="👉🏽 Зайти в приватку", callback_data="tariffs")
         ]
     ])
 
     for user in users:
-        if user.id in [821892126, 886105115]:
+        if user in [821892126, 886105115]:
             continue
-        plan = await repo.plans.select_plan(user.plan_id)
         try:
-            await bot.send_message(chat_id=user.id, text=text.format(full_name=user.full_name, plan_name=plan.name), reply_markup=keyboard)
+            await bot.send_media_group(chat_id=user, media=media_group)
+            await bot.send_message(chat_id=user, text=text, reply_markup=keyboard)
         except:
             pass
+        time.sleep(0.06)
     await message.answer("Рассылка завершена")
 
 @user_router.message(F.text == "/payment")
