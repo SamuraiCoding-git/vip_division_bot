@@ -74,6 +74,8 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
         response = requests.get(f"https://apilist.tronscanapi.com/api/transaction-info?hash={tx_hash}")
         transaction_data = response.json()
 
+        print(transaction_data)
+
         if transaction_data.get('toAddress') == tron_wallet and transaction_data.get("confirmed", False):
             return usd_price <= normalize_usdt_price(transaction_data)
 
