@@ -6,25 +6,25 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database.models.order import Order
+from infrastructure.database.repo.requests import RequestsRepo
+from infrastructure.database.setup import create_session_pool
 from tgbot.config import Config
 from tgbot.utils.payment_utils import process_payment
 
 
 async def send_notification(bot: Bot, user_id: int, message: str):
-    await bot.send_message(user_id, message)
+    await bot.send_message(user_id, "Подписка успешно")
 
 
 async def check_subscriptions(session: AsyncSession, bot: Bot, config: Config):
-    """
-    Check active subscriptions and send notifications or process recurring payments.
-    """
-    result = await session.execute(
-        select(Order).filter(Order.is_paid == True)
-    )
-    orders = result.scalars().all()
+    session_pool = await create_session_pool(config.db)
+
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+    orders = await repo.orders.get_paid_orders()
 
     for order in orders:
-        # Convert duration to integer if it's stored as a string
+        plan = await repo.plans.select_plan(order.plan_id)
         try:
             duration_days = int(order.plan.duration)  # Ensure duration is an integer
         except ValueError:
@@ -50,11 +50,8 @@ async def check_subscriptions(session: AsyncSession, bot: Bot, config: Config):
                 print(f"Recurring payment successful for order {order.id}")
             except Exception as e:
                 print(f"Failed to process recurring payment for order {order.id}: {e}")
-                order.status = "expired"
+                 = "expired"
                 await send_notification(order.user_id, "Your subscription has expired.")
-
-        # Commit changes to the database after processing each order
-        await session.commit()
 
 def normalize_usdt_price(transaction_data):
     """
