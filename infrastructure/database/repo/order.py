@@ -1,9 +1,10 @@
+from datetime import datetime, timedelta
 from typing import Optional, List
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database.models import Order, User
+from infrastructure.database.models import Order, User, Plan
 
 
 class OrderRepo:
@@ -135,3 +136,20 @@ class OrderRepo:
         result = await self.session.execute(select(Order).filter(Order.hash == hash))
         existing_order = result.scalar_one_or_none()
         return existing_order is None
+
+    async def get_users_with_subscriptions_expiring_soon(self) -> List[User]:
+        threshold_date = datetime.utcnow() + timedelta(days=3)
+
+        # Query the User model and join the necessary tables
+        result = await self.session.execute(
+            select(User)
+            .join(User.orders)
+            .join(Order.plan)
+            .filter(
+                (Order.start_date + timedelta(days=Plan.duration)) <= threshold_date,
+                Order.is_paid == True,  # Only paid subscriptions
+            )
+            .distinct()
+        )
+
+        return result.scalars().all()
