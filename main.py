@@ -105,8 +105,8 @@ async def process_request():
         form_data = request.form
         form_dict = form_data.to_dict()
 
-        # Логирование полученных данных
-        print(f"Form data: {form_dict}")
+        if form_dict['payment_status'] == 'success' and form_dict['payment_init'] == 'api':
+            return jsonify({'message': 'success'}), 200
 
         # Создание пула сессий базы данных
         session_pool = await create_session_pool(config.db)

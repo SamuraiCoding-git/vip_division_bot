@@ -19,7 +19,7 @@ from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, me
     access_payment_keyboard, story_keyboard, subscription_keyboard, reviews_payment_keyboard, experts_keyboard, \
     assistant_keyboard, access_keyboard, my_subscription_keyboard, guide_keyboard, pagination_keyboard, guides_keyboard, \
     pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard, instruction_keyboard, \
-    ready_to_change_keyboard, community_keyboard
+    community_keyboard
 from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, handle_seduction_deeplink
 from tgbot.utils.payment_utils import generate_payment_link, generate_qr_code
