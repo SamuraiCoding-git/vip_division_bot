@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Optional, List
 
-from sqlalchemy import select, update, cast, Interval, func
+from sqlalchemy import select, update, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from infrastructure.database.models import Order, User, Plan
+from infrastructure.database.models import Order, User
 
 
 class OrderRepo:
@@ -146,9 +146,10 @@ class OrderRepo:
             .join(User.orders)
             .join(Order.plan)
             .filter(
-                (Order.start_date + func.make_interval(days=Plan.duration)) <= threshold_date,
-                Order.is_paid == True,  # Only paid subscriptions
+                text("orders.start_date + interval '1 day' * plans.duration <= :threshold_date"),
+                Order.is_paid == True,
             )
+            .params(threshold_date=threshold_date)
             .distinct()
         )
 
