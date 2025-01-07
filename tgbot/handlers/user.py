@@ -518,9 +518,12 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
     is_unique_hash = await repo.orders.is_unique_order_hash(hash)
     if not is_unique_hash:
         await call.answer("Уже есть заказ с таким хэшем", show_alert=True)
+        return
+
     result = get_transaction_confirmations(hash, usd_price, config.misc.tron_wallet)
     print(result)
-    if result:
+
+    if result == "Транзакция успешно подтверждена.":
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         PHOTO_ID_DICT = {
             1: "AgACAgIAAxkBAALEjGdy0mrDQWi18wFpYoZq9NVA2TqjAAKV6TEbOoaJS4n3s7ggUnRgAQADAgADeQADNgQ",
@@ -532,12 +535,13 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         await repo.users.update_plan_id(call.message.chat.id, int(data['plan_id']))
         await repo.orders.update_order_payment_status(int(data['order_id']), True, hash=hash)
         await call.message.answer_photo(
-                                  photo=PHOTO_ID_DICT[int(data['plan_id'])],
-                                  caption=caption,
-                                  reply_markup=join_resources_keyboard(
-                                      create_invite_link(config.misc.private_channel_id),
-                                      create_invite_link(config.misc.private_chat_id)
-                                  ))
+            photo=PHOTO_ID_DICT[int(data['plan_id'])],
+            caption=caption,
+            reply_markup=join_resources_keyboard(
+                create_invite_link(config.misc.private_channel_id),
+                create_invite_link(config.misc.private_chat_id)
+            )
+        )
         VIDEO_FILE_ID = "BAACAgIAAxkBAALmHGd4rRnMKnmvZnp2ziGvf9VqZZsUAAJcXQACQzDJS1VissnlL4f0NgQ"
 
         caption = (
@@ -553,7 +557,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         )
         await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
     else:
-        await call.answer("Транзакция ещё не подтверждена!", show_alert=True)
+        await call.answer(result, show_alert=True)
 
 
 @user_router.callback_query(F.data == "ready_to_change")
