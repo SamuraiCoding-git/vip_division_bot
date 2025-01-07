@@ -79,8 +79,6 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
 
         transaction_data = response.json()
 
-        print(transaction_data)
-
         if 'toAddress' not in transaction_data:
             return "Поле 'toAddress' отсутствует в данных транзакции."
 
@@ -90,7 +88,7 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
         if not transaction_data.get('confirmed', False):
             return "Транзакция не подтверждена."
 
-        if transaction_data.get('toAddress') != tron_wallet:
+        if transaction_data.get('to_address') != tron_wallet:
             return "Адрес получателя не совпадает с ожидаемым."
 
         if usd_price > normalize_usdt_price(transaction_data):
