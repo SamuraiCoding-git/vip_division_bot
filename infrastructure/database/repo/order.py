@@ -104,7 +104,7 @@ class OrderRepo:
             .filter(Order.user_id == user_id, Order.is_paid == True)
             .order_by(Order.start_date.desc())
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
 
     async def get_user_by_order_id(self, order_id: int) -> Optional[User]:
         """
