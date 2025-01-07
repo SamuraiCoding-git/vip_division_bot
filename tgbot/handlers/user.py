@@ -519,7 +519,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
     if not is_unique_hash:
         await call.answer("Уже есть заказ с таким хэшем", show_alert=True)
     result = get_transaction_confirmations(hash, usd_price, config.misc.tron_wallet)
-    print()
+    print(result)
     if result:
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         PHOTO_ID_DICT = {
