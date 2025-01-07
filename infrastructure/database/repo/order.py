@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional, List
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database.models import Order, User, Plan
@@ -146,7 +146,7 @@ class OrderRepo:
             .join(User.orders)
             .join(Order.plan)
             .filter(
-                (Order.start_date + timedelta(days=Plan.duration)) <= threshold_date,
+                func.date_add(Order.start_date, func.interval(Plan.duration, 'DAY')) <= threshold_date,
                 Order.is_paid == True,  # Only paid subscriptions
             )
             .distinct()
