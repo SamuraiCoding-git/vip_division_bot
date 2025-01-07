@@ -241,6 +241,40 @@ async def biography(event, state: FSMContext, bot: Bot):
     )
     await state.update_data(message_ids=[sent_photo.message_id])
 
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+    users = await repo.orders.get_users_with_subscriptions_expiring_soon()
+
+    await message.answer("Рассылка началась.")
+    text = (
+        "Привет, {full_name}!\n"
+        "Через 1 день заканчивается подписка тарифа: {plan_name}\n\n"
+        "Продлевай по кнопке и продолжай соблазнять жизнь 🔥\n\n"
+        "<b>P.S. В январе от меня будет много разъебных постов и розыгрышей с подарками.</b>\n\n"
+        "Год только начался, ты обязан его разъебать!"
+    )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Продлить подписку", callback_data="tariffs")
+        ]
+    ])
+
+    for user in users:
+        if user.id in [821892126, 886105115]:
+            continue
+        plan = await repo.plans.select_plan(user.plan_id)
+        try:
+            await bot.send_message(chat_id=user.id, text=text.format(full_name=user.full_name, plan_name=plan.name), reply_markup=keyboard)
+        except:
+            pass
+    await message.answer("Рассылка завершена")
+
 @user_router.message(F.text == "/payment")
 @user_router.callback_query(F.data == "view_tariffs")
 @user_router.callback_query(F.data == "tariffs")
@@ -523,41 +557,6 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
     else:
         await call.answer("Транзакция ещё не подтверждена!")
-
-
-@user_router.message()
-async def message_mailing(message: Message, config: Config, bot: Bot):
-    if message.from_user.id != 422999166:
-        return
-    session_pool = await create_session_pool(config.db)
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-    users = await repo.orders.get_users_with_subscriptions_expiring_soon()
-
-    await message.answer("Рассылка началась.")
-    text = (
-        "Привет, {full_name}!\n"
-        "Через 1 день заканчивается подписка тарифа: {plan_name}\n\n"
-        "Продлевай по кнопке и продолжай соблазнять жизнь 🔥\n\n"
-        "<b>P.S. В январе от меня будет много разъебных постов и розыгрышей с подарками.</b>\n\n"
-        "Год только начался, ты обязан его разъебать!"
-    )
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Продлить подписку", callback_data="tariffs")
-        ]
-    ])
-
-    for user in users:
-        if user.id in [821892126, 886105115]:
-            continue
-        plan = await repo.plans.select_plan(user.plan_id)
-        try:
-            await bot.send_message(chat_id=user.id, text=text.format(full_name=user.full_name, plan_name=plan.name), reply_markup=keyboard)
-        except:
-            pass
-    await message.answer("Рассылка завершена")
 
 
 @user_router.callback_query(F.data == "ready_to_change")
