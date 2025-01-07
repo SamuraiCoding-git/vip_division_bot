@@ -270,6 +270,7 @@ class Miscellaneous:
     private_chat_id: str
     payment_form_url: str
     tron_wallet: str
+    sys: str
     other_params: Optional[str] = None
 
     @staticmethod
@@ -279,6 +280,7 @@ class Miscellaneous:
             private_chat_id=env.str("PRIVATE_CHAT_ID"),
             payment_form_url=env.str("PAYMENT_FORM_URL"),
             tron_wallet=env.str("TRON_WALLET"),
+            sys=env.str("SYS"),
             other_params=env.str("OTHER_PARAMS", default=None),
         )
 

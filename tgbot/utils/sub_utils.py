@@ -6,17 +6,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database.models.order import Order
+from tgbot.config import Config
+from tgbot.utils.payment_utils import process_payment
 
 
 async def send_notification(bot: Bot, user_id: int, message: str):
     await bot.send_message(user_id, message)
 
-async def process_recurring_payment(order: Order):
-    pass
 
-# Function to check subscriptions
-
-async def check_subscriptions(session: AsyncSession, bot: Bot):
+async def check_subscriptions(session: AsyncSession, bot: Bot, config: Config):
     """
     Check active subscriptions and send notifications or process recurring payments.
     """
@@ -38,16 +36,17 @@ async def check_subscriptions(session: AsyncSession, bot: Bot):
         end_date = order.start_date + timedelta(days=duration_days)
         days_remaining = (end_date - now).days
 
-        if days_remaining == 3:
-            # Notify about expiration in 3 days
-            await send_notification(order.user_id, "Your subscription will expire in 3 days.")
-        elif days_remaining == 1:
-            # Notify about expiration in 1 day
-            await send_notification(order.user_id, "Your subscription will expire tomorrow.")
-        elif days_remaining <= 0:
+        if days_remaining <= 0:
             # Process recurring payment or mark subscription as expired
             try:
-                await process_recurring_payment(order)
+                await process_payment(
+                    order.binding_id,
+                    order.user_id,
+                    config.misc.sys,
+                    config.payment.token,
+                    config.misc.payment_form_url,
+                    order.total_price
+                )
                 print(f"Recurring payment successful for order {order.id}")
             except Exception as e:
                 print(f"Failed to process recurring payment for order {order.id}: {e}")

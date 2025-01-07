@@ -120,6 +120,7 @@ def create(data, key, algo='sha256'):
 
     return signature.hexdigest()
 
+
 def process_payment(binding_id, client_id, sys, secret_key, api_url, order_sum):
     data = {
         "binding_id": binding_id,
@@ -136,7 +137,7 @@ def process_payment(binding_id, client_id, sys, secret_key, api_url, order_sum):
     }
 
     try:
-        response = requests.post(api_url, headers=headers, data=data)
+        response = requests.post(api_url + "/rest/payment/do", headers=headers, data=data)
         response_data = response.json()
         return response_data
     except Exception as e:
