@@ -50,7 +50,7 @@ async def check_subscriptions(session: AsyncSession, bot: Bot, config: Config):
                 print(f"Recurring payment successful for order {order.id}")
             except Exception as e:
                 print(f"Failed to process recurring payment for order {order.id}: {e}")
-                 = "expired"
+                order.is_paid = False
                 await send_notification(order.user_id, "Your subscription has expired.")
 
 def normalize_usdt_price(transaction_data):
