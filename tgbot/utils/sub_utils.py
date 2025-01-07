@@ -69,17 +69,38 @@ def normalize_usdt_price(transaction_data):
         print(f"Error normalizing USDT price: {e}")
         return None
 
+
 def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
     try:
         response = requests.get(f"https://apilist.tronscanapi.com/api/transaction-info?hash={tx_hash}")
+
+        if response.status_code != 200:
+            return f"Ошибка при получении данных о транзакции: HTTP {response.status_code}"
+
         transaction_data = response.json()
 
-        print(transaction_data)
+        if 'toAddress' not in transaction_data:
+            return "Поле 'toAddress' отсутствует в данных транзакции."
 
-        if transaction_data.get('toAddress') == tron_wallet and transaction_data.get("confirmed", False):
-            return usd_price <= normalize_usdt_price(transaction_data)
+        if 'confirmed' not in transaction_data:
+            return "Поле 'confirmed' отсутствует в данных транзакции."
 
-        return False
+        if not transaction_data.get('confirmed', False):
+            return "Транзакция не подтверждена."
 
-    except Exception:
-        return False
+        if transaction_data.get('toAddress') != tron_wallet:
+            return "Адрес получателя не совпадает с ожидаемым."
+
+        if usd_price > normalize_usdt_price(transaction_data):
+            return "Сумма транзакции меньше ожидаемой."
+
+        return "Транзакция успешно подтверждена."
+
+    except requests.RequestException as e:
+        return f"Ошибка запроса к API: {str(e)}"
+
+    except ValueError:
+        return "Ошибка при обработке ответа от API. Возможно, неверный формат JSON."
+
+    except Exception as e:
+        return f"Неизвестная ошибка: {str(e)}"

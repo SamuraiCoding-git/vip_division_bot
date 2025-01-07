@@ -523,41 +523,41 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
     result = get_transaction_confirmations(hash, usd_price, config.misc.tron_wallet)
     print(result)
 
-    # if result == "Транзакция успешно подтверждена.":
-    #     caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
-    #     PHOTO_ID_DICT = {
-    #         1: "AgACAgIAAxkBAALEjGdy0mrDQWi18wFpYoZq9NVA2TqjAAKV6TEbOoaJS4n3s7ggUnRgAQADAgADeQADNgQ",
-    #         2: "AgACAgIAAxkBAALEimdy0mogvij5Ftf2H8gl35umq8q3AAKS6TEbOoaJSyo0D53HGSccAQADAgADeQADNgQ",
-    #         3: "AgACAgIAAxkBAALVIGdz6Q6rehB64Lr3d9PdSyHCntiHAAKy5jEb3eahS01IU1EPEcbzAQADAgADeQADNgQ",
-    #         4: "AgACAgIAAxkBAALEi2dy0mq9sEozgl_G_TSMMQTr6Xv4AAKT6TEbOoaJS3CNhv-ILUFiAQADAgADeQADNgQ"
-    #     }
-    #     await state.clear()
-    #     await repo.users.update_plan_id(call.message.chat.id, int(data['plan_id']))
-    #     await repo.orders.update_order_payment_status(int(data['order_id']), True, hash=hash)
-    #     await call.message.answer_photo(
-    #         photo=PHOTO_ID_DICT[int(data['plan_id'])],
-    #         caption=caption,
-    #         reply_markup=join_resources_keyboard(
-    #             create_invite_link(config.misc.private_channel_id),
-    #             create_invite_link(config.misc.private_chat_id)
-    #         )
-    #     )
-    #     VIDEO_FILE_ID = "BAACAgIAAxkBAALmHGd4rRnMKnmvZnp2ziGvf9VqZZsUAAJcXQACQzDJS1VissnlL4f0NgQ"
-    #
-    #     caption = (
-    #         f"{call.message.chat.full_name}, приветствуем тебя, бро, ты попал в лучшее мужское комьюнити 🤝\n\n"
-    #         "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
-    #         "Я знаю как тебе это дать!\n\n"
-    #         "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
-    #         "В закрепе канала ты найдёшь:\n"
-    #         "1 — первый пост (начни с него)\n"
-    #         "2 — навигацию по темам для удобства и поиска информации (в описании канала)\n"
-    #         "3 — Не забудь вступить в ЧАТ для общения с парнями\n\n"
-    #         "Переходи по кнопке ИНСТРУКЦИЯ для новичка и начинай собирать эту жизнь!"
-    #     )
-    #     await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
-    # else:
-    #     await call.answer(result, show_alert=True)
+    if result == "Транзакция успешно подтверждена.":
+        caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
+        PHOTO_ID_DICT = {
+            1: "AgACAgIAAxkBAALEjGdy0mrDQWi18wFpYoZq9NVA2TqjAAKV6TEbOoaJS4n3s7ggUnRgAQADAgADeQADNgQ",
+            2: "AgACAgIAAxkBAALEimdy0mogvij5Ftf2H8gl35umq8q3AAKS6TEbOoaJSyo0D53HGSccAQADAgADeQADNgQ",
+            3: "AgACAgIAAxkBAALVIGdz6Q6rehB64Lr3d9PdSyHCntiHAAKy5jEb3eahS01IU1EPEcbzAQADAgADeQADNgQ",
+            4: "AgACAgIAAxkBAALEi2dy0mq9sEozgl_G_TSMMQTr6Xv4AAKT6TEbOoaJS3CNhv-ILUFiAQADAgADeQADNgQ"
+        }
+        await state.clear()
+        await repo.users.update_plan_id(call.message.chat.id, int(data['plan_id']))
+        await repo.orders.update_order_payment_status(int(data['order_id']), True, hash=hash)
+        await call.message.answer_photo(
+            photo=PHOTO_ID_DICT[int(data['plan_id'])],
+            caption=caption,
+            reply_markup=join_resources_keyboard(
+                create_invite_link(config.misc.private_channel_id),
+                create_invite_link(config.misc.private_chat_id)
+            )
+        )
+        VIDEO_FILE_ID = "BAACAgIAAxkBAALmHGd4rRnMKnmvZnp2ziGvf9VqZZsUAAJcXQACQzDJS1VissnlL4f0NgQ"
+
+        caption = (
+            f"{call.message.chat.full_name}, приветствуем тебя, бро, ты попал в лучшее мужское комьюнити 🤝\n\n"
+            "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
+            "Я знаю как тебе это дать!\n\n"
+            "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
+            "В закрепе канала ты найдёшь:\n"
+            "1 — первый пост (начни с него)\n"
+            "2 — навигацию по темам для удобства и поиска информации (в описании канала)\n"
+            "3 — Не забудь вступить в ЧАТ для общения с парнями\n\n"
+            "Переходи по кнопке ИНСТРУКЦИЯ для новичка и начинай собирать эту жизнь!"
+        )
+        await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
+    else:
+        await call.answer(result, show_alert=True)
 
 
 @user_router.callback_query(F.data == "ready_to_change")
