@@ -260,28 +260,13 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
     ]
 
     await message.answer("Рассылка началась.")
-    text = (
-        "более 100 постов на каждую тему разобраны мной от А до Я\n\n"
-        "Зачем тебе тратить время, если я все сделал за тебя?\n\n"
-        "Мой опыт + твои усилия = результат\n\n"
-        "<b>Не паникуй и перестань откладывать, просто возьми изучи только самое главное: секс, девушки, коммуникации, харизма, управление вниманием, отношения и личное развитие.</b>\n\n"
-        "За 1390 ты получаешь ВСЕ.\n\n"
-        "У тебя 2 дня. После я закрою доступ!\n\n"
-        "Успеть занять место."
-    )
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="👉🏽 Зайти в приватку", callback_data="tariffs")
-        ]
-    ])
 
     for user in users:
         if user in [821892126, 886105115]:
             continue
         try:
-            await bot.send_media_group(chat_id=user, media=media_group)
-            await bot.send_message(chat_id=user, text=text, reply_markup=keyboard)
+            await bot.forward_message(chat_id=user, from_chat_id=message.chat.id, message_id=message.message_id)
         except:
             pass
         time.sleep(0.06)
