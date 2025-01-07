@@ -79,10 +79,7 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
 
         transaction_data = response.json()
 
-        print(transaction_data)
-
-        if 'to_address' not in transaction_data:
-            return "Поле 'toAddress' отсутствует в данных транзакции."
+        print(transaction_data['tokenTransferInfo'])
 
         if 'confirmed' not in transaction_data:
             return "Поле 'confirmed' отсутствует в данных транзакции."
