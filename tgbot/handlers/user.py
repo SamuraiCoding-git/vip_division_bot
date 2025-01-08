@@ -242,48 +242,6 @@ async def biography(event, state: FSMContext, bot: Bot):
     )
     await state.update_data(message_ids=[sent_photo.message_id])
 
-@user_router.message()
-async def message_mailing(message: Message, config: Config, bot: Bot):
-    if message.from_user.id != 422999166:
-        return
-    session_pool = await create_session_pool(config.db)
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-    users = await repo.orders.get_users_with_unpaid_orders()
-
-    photo = 'AgACAgIAAxkBAAEBEGlnfrIblKgRw2D_rahC9ojpOIewbQAChesxG9Ad-UsreEkZpjUF5QEAAwIAA3kAAzYE'
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="💯 Научится соблазнять", callback_data="tariffs")
-        ]
-    ])
-
-    text = (
-"<b>Запомни.</b>\n"
-"<b>УПРАВЛЯЕШЬ ТЫ, А НЕ ТОБОЙ</b>\n\n"
-"<b>УВАЖЕНИЕ КОНВЕРТИРУЕТСЯ В СВЯЗИ, А СВЯЗИ КОНВЕРТИРУЮТСЯ В ДЕНЬГИ, А ДЕНЬГИ В ВОЗМОЖНОСТИ!</b>\n\n"
-"Хочешь научиться манипулировать? - Тебе нужно соблазнение!\n\n"
-"Хочешь зарабатывать большие деньги? - Тебе нужно соблазнение!\n\n"
-"Хочешь иметь связи? - \n"
-"Тебе нужно соблазнение!\n\n"
-"✅ Навыками соблазнения можно обучиться, но за какое время решать тебе. Со мной быстро и результативно, одному долго и неэффективно."
-)
-
-
-    await message.answer("Рассылка началась.")
-
-
-    for user in users:
-        if user in [821892126, 886105115]:
-            continue
-        try:
-            await bot.send_photo(chat_id=user, photo=photo, caption=text, reply_markup=keyboard)
-        except:
-            pass
-        time.sleep(0.06)
-    await message.answer("Рассылка завершена")
-
 @user_router.message(F.text == "/payment")
 @user_router.callback_query(F.data == "view_tariffs")
 @user_router.callback_query(F.data == "tariffs")
