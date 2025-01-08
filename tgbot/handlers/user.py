@@ -5,7 +5,8 @@ import time
 from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, FSInputFile
+from aiogram.types import Message, CallbackQuery, InputMediaPhoto, InputMediaVideo, FSInputFile, InlineKeyboardButton, \
+    InlineKeyboardMarkup
 
 from infrastructure.api.app import config
 from infrastructure.database.repo.requests import RequestsRepo
@@ -241,35 +242,41 @@ async def biography(event, state: FSMContext, bot: Bot):
     )
     await state.update_data(message_ids=[sent_photo.message_id])
 
-# @user_router.message()
-# async def message_mailing(message: Message, config: Config, bot: Bot):
-#     if message.from_user.id != 422999166:
-#         return
-#     session_pool = await create_session_pool(config.db)
-#     async with session_pool() as session:
-#         repo = RequestsRepo(session)
-#     users = await repo.orders.get_users_with_unpaid_orders()
-#
-#     media_group = [
-#         InputMediaPhoto(media="AgACAgIAAxkBAAL3SGd9UE3wfsGlDfEwNWhcgnuICwTxAAKc5TEb1ZfwS5mYI_pSCptZAQADAgADeAADNgQ"),
-#         InputMediaPhoto(media="AgACAgIAAxkBAAL3R2d9UE1EYeBhPXFvQGBkWna2yXcnAAKb5TEb1ZfwS0agxuDpiNZzAQADAgADeQADNgQ"),
-#         InputMediaPhoto(media="AgACAgIAAxkBAAL3Smd9UE3kyz-lk6HssIYs6yJ-RcNpAAKd5TEb1ZfwS-K_RG3NedvvAQADAgADeAADNgQ"),
-#         InputMediaPhoto(media="AgACAgIAAxkBAAL3Rmd9UE3GKs6c6cRJIimssYktbBDAAAKa5TEb1ZfwS_ltPR5mcvEqAQADAgADeAADNgQ"),
-#         InputMediaPhoto(media="AgACAgIAAxkBAAL3SWd9UE3RPnWOeKknSGUQZZ_CarbDAAKe5TEb1ZfwS3T7_fqc1lXAAQADAgADeQADNgQ")
-#     ]
-#
-#     await message.answer("Рассылка началась.")
-#
-#
-#     for user in users:
-#         if user in [821892126, 886105115]:
-#             continue
-#         try:
-#             await bot.forward_message(chat_id=user, from_chat_id=message.chat.id, message_id=message.message_id)
-#         except:
-#             pass
-#         time.sleep(0.06)
-#     await message.answer("Рассылка завершена")
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+    users = await repo.orders.get_users_with_unpaid_orders()
+
+    photo = 'AgACAgIAAxkBAAEBDPhnfj9BxD028xxvv-mCDlEOXyyrlQACfvMxG9Ad8UtM8qMxMAXgaQEAAwIAA3kAAzYE'
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅купить доступ", callback_data="tariffs")
+        ]
+    ])
+
+    text = (
+        "Успей пока не поздно. 24 часа\n\n"
+        "<b>Не трать время впустую, лучше заплатить и применять, чем жалеть и ошибаться.</b>\n\n"
+        "Подробнее про закрытый клуб по кнопке ниже 👇🏽"
+    )
+
+    await message.answer("Рассылка началась.")
+
+
+    for user in users:
+        if user in [821892126, 886105115]:
+            continue
+        try:
+            await bot.send_photo(chat_id=user, photo=photo, caption=text, reply_markup=keyboard)
+        except:
+            pass
+        time.sleep(0.06)
+    await message.answer("Рассылка завершена")
 
 @user_router.message(F.text == "/payment")
 @user_router.callback_query(F.data == "view_tariffs")
