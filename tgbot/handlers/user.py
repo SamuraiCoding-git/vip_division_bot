@@ -65,7 +65,40 @@ async def read_article(call: CallbackQuery, state: FSMContext, config: Config):
     await call.message.answer(text)
     await call.message.answer(text_part_2, reply_markup=guides_keyboard())
 
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+    users = await repo.orders.get_users_with_unpaid_orders()
 
+    photo = 'BAACAgIAAxkBAAEBFllnftoHL79LezuVG9wfRC_M02e7DQACgmoAAtAd-UsUBYu3kljSAjYE'
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❗️Доступ за 46₽/день", callback_data="tariffs")
+        ]
+    ])
+
+   text = (
+"Ангелина, не вижу тебя в списках приватного канала, не хочется верить, что ты оставил лучшую жизнь на потом.\n\n"
+"1 час и я закрываю вход"
+)
+
+    await message.answer("Рассылка началась.")
+
+
+    for user in users:
+        if user in [821892126, 886105115]:
+            continue
+        try:
+            await bot.send_video(chat_id=user, video=photo, caption=text, reply_markup=keyboard)
+        except:
+            pass
+        time.sleep(0.03)
+    await message.answer("Рассылка завершена")
 
 @user_router.message(CommandStart(deep_link=True))
 async def user_deeplink(message: Message, command: CommandObject, config: Config):
