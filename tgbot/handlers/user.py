@@ -69,10 +69,11 @@ async def read_article(call: CallbackQuery, state: FSMContext, config: Config):
 async def message_mailing(message: Message, config: Config, bot: Bot):
     if message.from_user.id != 422999166:
         return
+
     session_pool = await create_session_pool(config.db)
     async with session_pool() as session:
         repo = RequestsRepo(session)
-    users = await repo.orders.get_users_with_unpaid_orders()
+        users = await repo.orders.get_users_with_unpaid_orders()
 
     photo = 'BAACAgIAAxkBAAEBFllnftoHL79LezuVG9wfRC_M02e7DQACgmoAAtAd-UsUBYu3kljSAjYE'
 
@@ -82,23 +83,30 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
         ]
     ])
 
-   text = (
-   "Ангелина, не вижу тебя в списках приватного канала, не хочется верить, что ты оставил лучшую жизнь на потом.\n\n"
-   "1 час и я закрываю вход"
-   )
-
     await message.answer("Рассылка началась.")
-
 
     for user in users:
         if user in [821892126, 886105115]:
             continue
+
         try:
+            # Получаем объект пользователя
+            user_object = await repo.users.select_user(user)
+
+            # Формируем персонализированный текст
+            text = (
+                f"{user_object.full_name}, не вижу тебя в списках приватного канала, "
+                f"не хочется верить, что ты оставил лучшую жизнь на потом.\n\n"
+                "1 час и я закрываю вход"
+            )
+
             await bot.send_video(chat_id=user, video=photo, caption=text, reply_markup=keyboard)
-        except:
-            pass
+        except Exception as e:
+            print(f"Ошибка при отправке пользователю {user}: {e}")
         time.sleep(0.03)
+
     await message.answer("Рассылка завершена")
+
 
 @user_router.message(CommandStart(deep_link=True))
 async def user_deeplink(message: Message, command: CommandObject, config: Config):
