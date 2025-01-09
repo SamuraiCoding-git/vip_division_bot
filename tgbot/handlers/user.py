@@ -413,17 +413,19 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 @user_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
-    text = ("Приватный канал закрыт.\n\n"
-            "Но можешь насладиться подкастом")
-    photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
-    await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel())
-    # session_pool = await create_session_pool(config.db)
-    # async with session_pool() as session:
-    #     repo = RequestsRepo(session)
-    #     plan = await repo.plans.select_plan(callback_data.id)
-    #     order = await repo.orders.create_order(call.message.chat.id,
-    #                                            callback_data.id,
-    #                                            plan.original_price)
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+    user = await repo.users.select_user(call.message.chat.id)
+    print(type(user.created_at))
+    # text = ("Приватный канал закрыт.\n\n"
+    #         "Но можешь насладиться подкастом")
+    # photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
+    # await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel())
+    # plan = await repo.plans.select_plan(callback_data.id)
+    # order = await repo.orders.create_order(call.message.chat.id,
+    #                                        callback_data.id,
+    #                                        plan.original_price)
     #
     # if plan.discounted_price != plan.original_price:
     #     discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
