@@ -436,3 +436,10 @@ def choose_tariff_keyboard():
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
     return keyboard
+
+def podcast_channel():
+    buttons = [
+        InlineKeyboardButton(text="Смотреть подкаст", url="https://youtu.be/I1bn-3Y5A_Y")
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
+    return keyboard
