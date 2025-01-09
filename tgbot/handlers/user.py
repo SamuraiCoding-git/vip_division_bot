@@ -417,42 +417,44 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     async with session_pool() as session:
         repo = RequestsRepo(session)
     user = await repo.users.select_user(call.message.chat.id)
-    print(type(user.created_at))
-    # text = ("Приватный канал закрыт.\n\n"
-    #         "Но можешь насладиться подкастом")
-    # photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
-    # await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel())
-    # plan = await repo.plans.select_plan(callback_data.id)
-    # order = await repo.orders.create_order(call.message.chat.id,
-    #                                        callback_data.id,
-    #                                        plan.original_price)
-    #
-    # if plan.discounted_price != plan.original_price:
-    #     discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
-    #     price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
-    # else:
-    #     price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
-    #
-    #
-    # text = config.text.tariff_caption.replace("{plan.name}", plan.name).replace("{price_text}", price_text).replace("{plan.name[:-2]}", str(plan.name[:-2]))
-    #
-    # await state.update_data(usd_price=plan.usd_price)
-    # await state.update_data(plan_id=plan.id)
-    # await state.update_data(order_id=order.id)
-    #
-    # product = [
-    #     {
-    #         "quantity": 1,
-    #         "name": plan.name[:-2],
-    #         "price": int(plan.original_price),
-    #         "sku": plan.id
-    #     }
-    # ]
-    #
-    # link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
-    #
-    # sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
-    # await state.update_data(message_ids=[sent_message.message_id])
+    reference_date = datetime(2025, 1, 9)
+    if user.created_at < reference_date:
+        text = ("Приватный канал закрыт.\n\n"
+                "Но можешь насладиться подкастом")
+        photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
+        await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel())
+        return
+    plan = await repo.plans.select_plan(callback_data.id)
+    order = await repo.orders.create_order(call.message.chat.id,
+                                           callback_data.id,
+                                           plan.original_price)
+
+    if plan.discounted_price != plan.original_price:
+        discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
+        price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
+    else:
+        price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
+
+
+    text = config.text.tariff_caption.replace("{plan.name}", plan.name).replace("{price_text}", price_text).replace("{plan.name[:-2]}", str(plan.name[:-2]))
+
+    await state.update_data(usd_price=plan.usd_price)
+    await state.update_data(plan_id=plan.id)
+    await state.update_data(order_id=order.id)
+
+    product = [
+        {
+            "quantity": 1,
+            "name": plan.name[:-2],
+            "price": int(plan.original_price),
+            "sku": plan.id
+        }
+    ]
+
+    link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
+
+    sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
+    await state.update_data(message_ids=[sent_message.message_id])
 
 @user_router.callback_query(F.data == "guide")
 async def guide(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
