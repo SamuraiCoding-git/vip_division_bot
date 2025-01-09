@@ -418,7 +418,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         repo = RequestsRepo(session)
     user = await repo.users.select_user(call.message.chat.id)
     reference_date = datetime(2025, 1, 9)
-    if user.created_at < reference_date:
+    if user.created_at > reference_date:
         text = ("Приватный канал закрыт.\n\n"
                 "Но можешь насладиться подкастом")
         photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
