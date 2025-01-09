@@ -20,7 +20,7 @@ from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, me
     access_payment_keyboard, story_keyboard, subscription_keyboard, reviews_payment_keyboard, experts_keyboard, \
     assistant_keyboard, access_keyboard, my_subscription_keyboard, guide_keyboard, pagination_keyboard, guides_keyboard, \
     pay_keyboard, crypto_pay_link, crypto_pay_check_keyboard, join_resources_keyboard, instruction_keyboard, \
-    community_keyboard
+    community_keyboard, podcast_channel
 from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, handle_seduction_deeplink
 from tgbot.utils.payment_utils import generate_payment_link, generate_qr_code
@@ -413,40 +413,44 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 @user_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     await delete_messages(bot=bot, chat_id=call.message.chat.id, state=state)
-    session_pool = await create_session_pool(config.db)
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-        plan = await repo.plans.select_plan(callback_data.id)
-        order = await repo.orders.create_order(call.message.chat.id,
-                                               callback_data.id,
-                                               plan.original_price)
-
-    if plan.discounted_price != plan.original_price:
-        discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
-        price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
-    else:
-        price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
-
-
-    text = config.text.tariff_caption.replace("{plan.name}", plan.name).replace("{price_text}", price_text).replace("{plan.name[:-2]}", str(plan.name[:-2]))
-
-    await state.update_data(usd_price=plan.usd_price)
-    await state.update_data(plan_id=plan.id)
-    await state.update_data(order_id=order.id)
-
-    product = [
-        {
-            "quantity": 1,
-            "name": plan.name[:-2],
-            "price": int(plan.original_price),
-            "sku": plan.id
-        }
-    ]
-
-    link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
-
-    sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
-    await state.update_data(message_ids=[sent_message.message_id])
+    text = ("Приватный канал закрыт.\n\n"
+            "Но можешь насладиться подкастом")
+    photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
+    await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel())
+    # session_pool = await create_session_pool(config.db)
+    # async with session_pool() as session:
+    #     repo = RequestsRepo(session)
+    #     plan = await repo.plans.select_plan(callback_data.id)
+    #     order = await repo.orders.create_order(call.message.chat.id,
+    #                                            callback_data.id,
+    #                                            plan.original_price)
+    #
+    # if plan.discounted_price != plan.original_price:
+    #     discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
+    #     price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
+    # else:
+    #     price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
+    #
+    #
+    # text = config.text.tariff_caption.replace("{plan.name}", plan.name).replace("{price_text}", price_text).replace("{plan.name[:-2]}", str(plan.name[:-2]))
+    #
+    # await state.update_data(usd_price=plan.usd_price)
+    # await state.update_data(plan_id=plan.id)
+    # await state.update_data(order_id=order.id)
+    #
+    # product = [
+    #     {
+    #         "quantity": 1,
+    #         "name": plan.name[:-2],
+    #         "price": int(plan.original_price),
+    #         "sku": plan.id
+    #     }
+    # ]
+    #
+    # link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
+    #
+    # sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
+    # await state.update_data(message_ids=[sent_message.message_id])
 
 @user_router.callback_query(F.data == "guide")
 async def guide(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
@@ -617,7 +621,6 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
         ]
         sent_media = await call.message.answer_media_group(media_group)
         message_ids = [msg.message_id for msg in sent_media]
-
         caption = config.text.vip_division_caption
 
         sent_caption = await call.message.answer(caption, reply_markup=vip_division_keyboard("menu"))
