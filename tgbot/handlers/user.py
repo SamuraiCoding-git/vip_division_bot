@@ -417,7 +417,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     async with session_pool() as session:
         repo = RequestsRepo(session)
     user = await repo.users.select_user(call.message.chat.id)
-    reference_date = datetime(2025, 1, 9)
+    reference_date = datetime(2025, 1, 10)
     if user.created_at > reference_date:
         text = ("Приватный канал закрыт.\n\n"
                 "Но можешь насладиться подкастом")
@@ -541,7 +541,6 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         return
 
     result = get_transaction_confirmations(hash, usd_price, config.misc.tron_wallet)
-    print(result)
 
     if result == "Транзакция успешно подтверждена.":
         caption = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"

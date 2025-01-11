@@ -69,3 +69,21 @@ class UserRepo(BaseRepo):
 
         # Return the updated user object
         return result.scalar_one()
+
+    async def update_recurrence(self, user_id: int, is_recurrent: bool) -> User:
+        # Create the update statement
+        update_stmt = (
+            update(User)
+            .where(User.id == user_id)
+            .values(is_recurrent=is_recurrent)
+            .returning(User)
+        )
+
+        # Execute the update
+        result = await self.session.execute(update_stmt)
+
+        # Commit the transaction
+        await self.session.commit()
+
+        # Return the updated user object
+        return result.scalar_one()
