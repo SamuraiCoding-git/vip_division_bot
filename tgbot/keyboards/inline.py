@@ -443,3 +443,10 @@ def podcast_channel():
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
     return keyboard
+
+def admin_keyboard():
+    buttons = [
+        [
+            InlineKeyboardButton(text="")
+        ]
+    ]
