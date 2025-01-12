@@ -103,6 +103,7 @@ async def message_mailing(message: Message, config: Config, bot: Bot):
         time.sleep(0.03)
 
     await message.answer("Рассылка завершена")
+    await message.answer(f"Сообщений отправлено: {messages}")
 
 
 @user_router.message(CommandStart(deep_link=True))
