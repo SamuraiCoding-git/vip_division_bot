@@ -65,47 +65,44 @@ async def read_article(call: CallbackQuery, state: FSMContext, config: Config):
     await call.message.answer(text)
     await call.message.answer(text_part_2, reply_markup=guides_keyboard())
 
-# @user_router.message()
-# async def message_mailing(message: Message, config: Config, bot: Bot):
-#     if message.from_user.id != 422999166:
-#         return
-#
-#     session_pool = await create_session_pool(config.db)
-#     async with session_pool() as session:
-#         repo = RequestsRepo(session)
-#         users = await repo.orders.get_users_with_unpaid_orders()
-#
-#     photo = 'BAACAgIAAxkBAAEBFllnftoHL79LezuVG9wfRC_M02e7DQACgmoAAtAd-UsUBYu3kljSAjYE'
-#
-#     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-#         [
-#             InlineKeyboardButton(text="❗️Доступ за 46₽/день", callback_data="tariffs")
-#         ]
-#     ])
-#
-#     await message.answer("Рассылка началась.")
-#
-#     for user in users:
-#         if user in [821892126, 886105115]:
-#             continue
-#
-#         try:
-#             # Получаем объект пользователя
-#             user_object = await repo.users.select_user(user)
-#
-#             # Формируем персонализированный текст
-#             text = (
-#                 f"{user_object.full_name}, не вижу тебя в списках приватного канала, "
-#                 f"не хочется верить, что ты оставил лучшую жизнь на потом.\n\n"
-#                 "1 час и я закрываю вход"
-#             )
-#
-#             await bot.send_video(chat_id=user, video=photo, caption=text, reply_markup=keyboard)
-#         except Exception as e:
-#             print(f"Ошибка при отправке пользователю {user}: {e}")
-#         time.sleep(0.03)
-#
-#     await message.answer("Рассылка завершена")
+@user_router.message()
+async def message_mailing(message: Message, config: Config, bot: Bot):
+    if message.from_user.id != 422999166:
+        return
+
+    session_pool = await create_session_pool(config.db)
+    async with session_pool() as session:
+        repo = RequestsRepo(session)
+        orders = await repo.users.get_eligible_orders()
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Продлить подписку ✅", callback_data="tariffs")
+        ]
+    ])
+
+    await message.answer("Рассылка началась.")
+
+    messages = 0
+
+    for order in orders:
+        if order.user_id in [821892126, 886105115, 5755603332]:
+            continue
+
+        try:
+            text = (
+                "Вижу ты не оплатил приватный канал, но еще находишься в нем.\n\n"
+                "Уверен, пока что ты просто не успел, ведь ты не из тех, кто будет довольствоваться ебанной жизнью и низкосортными девушками.\n\n"
+                "❗️Так что жду продления, чтобы не удалять из канала."
+            )
+
+            await bot.send_message(chat_id=order.user_id, text=text, reply_markup=keyboard)
+            messages += 1
+        except Exception as e:
+            print(f"Ошибка при отправке пользователю {order.user_id}: {e}")
+        time.sleep(0.03)
+
+    await message.answer("Рассылка завершена")
 
 
 @user_router.message(CommandStart(deep_link=True))

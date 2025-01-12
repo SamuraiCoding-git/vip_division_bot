@@ -1,9 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, literal, and_, not_, func
 from sqlalchemy.dialects.postgresql import insert
 
-from infrastructure.database.models import User
+from infrastructure.database.models import User, Order
 from infrastructure.database.repo.base import BaseRepo
 
 
@@ -87,3 +87,55 @@ class UserRepo(BaseRepo):
 
         # Return the updated user object
         return result.scalar_one()
+
+    async def get_eligible_orders(
+            self,
+            plan_id: int = 1,
+            start_date_range: tuple[str, str] = ("2024-12-12", "2024-12-16"),
+    ) -> List[Order]:
+        """
+        Fetch eligible orders based on the provided conditions:
+        - Plan ID is 1.
+        - Start date is at least 30 days old but within the specified range.
+        - The order is paid.
+        - No other recent orders exist for the same user with the same plan.
+
+        :param plan_id: The plan ID to filter orders. Default is 1.
+        :param start_date_range: A tuple containing the start and end dates for filtering.
+        :return: A list of eligible orders.
+        """
+        thirty_days_ago = func.now() - func.interval("30 days")
+
+        # Define the subquery for recent orders
+        recent_orders_subquery = (
+            select(literal(1))
+            .where(
+                and_(
+                    Order.user_id == Order.user_id,
+                    Order.plan_id == plan_id,
+                    Order.start_date > thirty_days_ago,
+                    Order.is_paid == True,
+                )
+            )
+            .exists()
+        )
+
+        # Main query for eligible orders
+        query = (
+            select(Order)
+            .where(
+                and_(
+                    Order.plan_id == plan_id,
+                    Order.start_date <= thirty_days_ago,
+                    Order.start_date.between(*start_date_range),
+                    Order.is_paid == True,
+                    not_(recent_orders_subquery),
+                )
+            )
+        )
+
+        # Execute the query
+        result = await self.session.execute(query)
+
+        # Return the list of eligible orders
+        return result.scalars().all()
