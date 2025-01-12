@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select, update, literal, and_, not_, func, text
+from sqlalchemy import select, update, literal, and_, not_, func, text, cast, DateTime
 from sqlalchemy.dialects.postgresql import insert
 
 from infrastructure.database.models import User, Order
@@ -91,7 +91,7 @@ class UserRepo(BaseRepo):
     async def get_eligible_orders(
         self,
         plan_id: int = 1,
-        start_date_range: tuple[str, str] = ("2024-12-12", "2024-12-16"),
+        start_date_range: tuple[str, str] = ("2024-12-06", "2024-12-13"),
     ) -> List[Order]:
         """
         Fetch eligible orders based on the provided conditions:
