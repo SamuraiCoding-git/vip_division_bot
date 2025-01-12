@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select, update, literal, and_, not_, func
+from sqlalchemy import select, update, literal, and_, not_, func, text
 from sqlalchemy.dialects.postgresql import insert
 
 from infrastructure.database.models import User, Order
@@ -89,9 +89,9 @@ class UserRepo(BaseRepo):
         return result.scalar_one()
 
     async def get_eligible_orders(
-            self,
-            plan_id: int = 1,
-            start_date_range: tuple[str, str] = ("2024-12-12", "2024-12-16"),
+        self,
+        plan_id: int = 1,
+        start_date_range: tuple[str, str] = ("2024-12-06", "2024-12-13"),
     ) -> List[Order]:
         """
         Fetch eligible orders based on the provided conditions:
@@ -104,16 +104,17 @@ class UserRepo(BaseRepo):
         :param start_date_range: A tuple containing the start and end dates for filtering.
         :return: A list of eligible orders.
         """
-        thirty_days_ago = func.now() - func.interval("30 days")
+        # Define the interval as a text literal to avoid parameter binding issues
+        thirty_days_ago_interval = text("now() - interval '30 days'")
 
-        # Define the subquery for recent orders
+        # Subquery for recent orders
         recent_orders_subquery = (
             select(literal(1))
             .where(
                 and_(
                     Order.user_id == Order.user_id,
                     Order.plan_id == plan_id,
-                    Order.start_date > thirty_days_ago,
+                    Order.start_date > thirty_days_ago_interval,
                     Order.is_paid == True,
                 )
             )
@@ -126,7 +127,7 @@ class UserRepo(BaseRepo):
             .where(
                 and_(
                     Order.plan_id == plan_id,
-                    Order.start_date <= thirty_days_ago,
+                    Order.start_date <= thirty_days_ago_interval,
                     Order.start_date.between(*start_date_range),
                     Order.is_paid == True,
                     not_(recent_orders_subquery),
