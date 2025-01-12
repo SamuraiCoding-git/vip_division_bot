@@ -91,7 +91,7 @@ class UserRepo(BaseRepo):
     async def get_eligible_orders(
         self,
         plan_id: int = 1,
-        start_date_range: tuple[str, str] = ("2024-12-06", "2024-12-13"),
+        start_date_range: tuple[str, str] = ("2024-12-12", "2024-12-16"),
     ) -> List[Order]:
         """
         Fetch eligible orders based on the provided conditions:
@@ -101,15 +101,15 @@ class UserRepo(BaseRepo):
         - No other recent orders exist for the same user with the same plan.
 
         :param plan_id: The plan ID to filter orders. Default is 1.
-        :param start_date_range: A tuple containing the start and end dates for filtering.
+        :param start_date_range: A tuple containing the start and end dates as strings in 'YYYY-MM-DD' format.
         :return: A list of eligible orders.
         """
-        # Define the interval as a text literal to avoid parameter binding issues
-        thirty_days_ago_interval = text("now() - interval '30 days'")
+        # Convert date strings to datetime.date objects
+        start_date_start = datetime.strptime(start_date_range[0], "%Y-%m-%d")
+        start_date_end = datetime.strptime(start_date_range[1], "%Y-%m-%d")
 
-        # Cast the start date range to match the `timestamp` column type
-        start_date_start = cast(start_date_range[0], DateTime)
-        start_date_end = cast(start_date_range[1], DateTime)
+        # Define the interval as a text literal
+        thirty_days_ago_interval = text("now() - interval '30 days'")
 
         # Subquery for recent orders
         recent_orders_subquery = (
