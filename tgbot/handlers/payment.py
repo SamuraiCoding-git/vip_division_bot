@@ -29,7 +29,7 @@ async def usdt_transaction_hash(message: Message, state: FSMContext):
         await state.update_data(message_ids=[sent_message.message_id])
         return
     await state.update_data(hash=hash_text)
-
+    await state.clear()
     await delete_messages(message.bot, message.from_user.id, state, [sent_message.message_id])
 
 

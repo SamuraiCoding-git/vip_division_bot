@@ -9,12 +9,12 @@ from .start import start_router
 
 routers_list = [
     admin_router,
+    start_router,
     user_router,
     media_router,
     navigation_router,
     subscription_router,
     payment_router,
-    start_router
 ]
 
 __all__ = [
