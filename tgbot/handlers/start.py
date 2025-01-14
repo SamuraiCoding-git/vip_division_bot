@@ -18,7 +18,7 @@ start_router.callback_query.filter(IsPrivateFilter())
 @start_router.message(CommandStart())
 async def user_start(message: Message, config: Config, state: FSMContext):
     message_ids = []
-    repo = get_repo(config)
+    repo = await get_repo(config)
 
     user = await repo.users.select_user(message.from_user.id)
     await repo.users.get_or_create_user(
@@ -57,7 +57,7 @@ async def offer_consent(call: CallbackQuery, callback_data: OfferConsentCallback
     await delete_messages(bot=call.bot, chat_id=call.message.chat.id, state=state)
 
     if callback_data.answer:
-        repo = get_repo(config)
+        repo = await get_repo(config)
         await repo.users.get_or_create_user(
             call.message.chat.id,
             call.message.chat.full_name,

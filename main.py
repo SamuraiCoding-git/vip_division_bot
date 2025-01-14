@@ -88,7 +88,7 @@ async def process_request():
         if form_data.get('payment_status') != 'success' or form_data.get('payment_init') != 'api':
             return jsonify({'message': 'Invalid payment status or initiation method'}), 400
 
-        repo = get_repo(config)
+        repo = await get_repo(config)
         user = await repo.users.select_user(int(form_data['client_id']))
         if not user:
             return jsonify({'error': 'User not found'}), 404

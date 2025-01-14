@@ -146,7 +146,7 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
         message_ids.append(sent_caption.message_id)
         await state.update_data(message_ids=message_ids)
     elif callback_data.state == "tariffs":
-        repo = get_repo(config)
+        repo = await get_repo(config)
         plans = await repo.plans.get_all_plans()
 
         text = config.text.tariffs_message

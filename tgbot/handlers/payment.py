@@ -40,7 +40,7 @@ async def tariffs(event, state: FSMContext, config: Config):
 
     message_ids = []
 
-    repo = get_repo(config)
+    repo = await get_repo(config)
     plans = await repo.plans.get_all_plans()
 
     text = config.text.tariffs_message

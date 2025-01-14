@@ -23,7 +23,7 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 
 @subscription_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
-    repo = get_repo(config)
+    repo = await get_repo(config)
     user = await repo.users.select_user(call.message.chat.id)
     reference_date = datetime(2025, 1, 10)
     if user.created_at > reference_date:
@@ -73,7 +73,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     chat_id = event.message.chat.id if isinstance(event, CallbackQuery) else event.chat.id
 
     message_ids = []
-    repo = get_repo(config)
+    repo = await get_repo(config)
 
     order = await repo.orders.get_latest_paid_order_by_user(chat_id)
 
@@ -129,7 +129,7 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
 @subscription_router.callback_query(F.data == "check_crypto_pay")
 async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
-    repo = get_repo(config)
+    repo = await get_repo(config)
     data = await state.get_data()
     hash = data.get("hash")
     usd_price = data.get("usd_price")
