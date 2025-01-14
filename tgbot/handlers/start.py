@@ -18,7 +18,6 @@ start_router.callback_query.filter(IsPrivateFilter())
 
 @start_router.message(CommandStart(deep_link=True))
 async def user_deeplink(message: Message, command: CommandObject, config: Config, state: FSMContext):
-    print(command.args)
     if command.args == "9ae0a8989a14fb1263b255b24d8becf2":
         await state.update_data(payments_opened='True')
         await message.answer("Платежная ссылка активирована!", reply_markup=generate_keyboard("📊Выбрать тариф"))
