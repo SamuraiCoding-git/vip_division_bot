@@ -84,7 +84,7 @@ def vip_division_keyboard(state):
             InlineKeyboardButton(text="💬 КАК РАБОТАЕТ ЧАТ?", callback_data="how_chat_works"),
         ],
         [
-            InlineKeyboardButton(text="✅ ВСТУПИТЬ В СООБЩЕСТВО", callback_data="view_tariffs"),
+            InlineKeyboardButton(text="✅ ВСТУПИТЬ В СООБЩЕСТВО", callback_data="tariffs"),
         ],
         [
             InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -100,7 +100,7 @@ def vip_division_keyboard(state):
 def access_payment_keyboard(state: str):
     buttons = [
         [
-            InlineKeyboardButton(text="💸 ОПЛАТИТЬ ДОСТУП", callback_data="view_tariffs"),
+            InlineKeyboardButton(text="💸 ОПЛАТИТЬ ДОСТУП", callback_data="tariffs"),
         ],
         [
             InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -141,7 +141,7 @@ def reviews_payment_keyboard(state: str):
         ],
         [
             InlineKeyboardButton(
-                text="💳 ОПЛАТИТЬ ДОСТУП", callback_data="view_tariffs"
+                text="💳 ОПЛАТИТЬ ДОСТУП", callback_data="tariffs"
             ),
         ],
         [
@@ -161,7 +161,7 @@ def experts_keyboard(state: str):
             InlineKeyboardButton(text="СТИЛИСТ", url="https://telegra.ph/STILIST-PRIVATKI---RODOS-11-13"),
         ],
         [
-            InlineKeyboardButton(text="💳 ОПЛАТИТЬ ДОСТУП", callback_data="view_tariffs"),
+            InlineKeyboardButton(text="💳 ОПЛАТИТЬ ДОСТУП", callback_data="tariffs"),
         ],
         [
             InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -175,7 +175,7 @@ def access_keyboard(state: str):
             InlineKeyboardButton(text="ИЗУЧИТЬ ✅", url="https://telegra.ph/CHto-poleznogo-est-v-tvoem-zakrytom-soobshchestve-11-04"),
         ],
         [
-            InlineKeyboardButton(text="💸 ДОСТУП ЗА 41 РУБ/ДЕНЬ", callback_data="view_tariffs"),
+            InlineKeyboardButton(text="💸 ДОСТУП ЗА 41 РУБ/ДЕНЬ", callback_data="tariffs"),
         ],
         [
             InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -211,7 +211,7 @@ def my_subscription_keyboard(state: str, is_sub=False, chat_link=None, channel_l
     else:
         buttons = [
             [
-                InlineKeyboardButton(text="✔️ ТАРИФЫ", callback_data="view_tariffs"),
+                InlineKeyboardButton(text="✔️ ТАРИФЫ", callback_data="tariffs"),
             ],
             [
                 InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -409,35 +409,15 @@ def community_keyboard():
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
-def want_too_keyboard():
+
+def generate_keyboard(button_text):
     buttons = [
-        InlineKeyboardButton(text="Хочу также ✔️", callback_data="tariffs")
+        InlineKeyboardButton(text=button_text, callback_data="tariffs")
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
     return keyboard
 
-def together_keyboard():
-    buttons = [
-        InlineKeyboardButton(text="🤝Я с вами", callback_data="tariffs")
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
-    return keyboard
-
-def transformation_keyboard():
-    buttons = [
-        InlineKeyboardButton(text="Ты прав, я попробую 👍🏽", callback_data="tariffs")
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
-    return keyboard
-
-def choose_tariff_keyboard():
-    buttons = [
-        InlineKeyboardButton(text="Выбрать тариф 📊", callback_data="tariffs")
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[buttons])
-    return keyboard
-
-def podcast_channel():
+def podcast_channel_keyboard():
     buttons = [
         InlineKeyboardButton(text="Смотреть подкаст", url="https://youtu.be/I1bn-3Y5A_Y")
     ]
@@ -447,6 +427,6 @@ def podcast_channel():
 def admin_keyboard():
     buttons = [
         [
-            InlineKeyboardButton(text="")
+            InlineKeyboardButton(text="Статус пользователя")
         ]
     ]

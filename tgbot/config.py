@@ -162,6 +162,9 @@ class MediaConfig:
     video_file: str
     sed_video_animation: str
     sed_photo_1: str
+    check_crypto_pay_photos: list
+    check_crypto_pay_video: str
+    ready_to_change_photo: str
 
     @staticmethod
     def from_env(env: Env) -> "MediaConfig":
@@ -202,6 +205,14 @@ class MediaConfig:
             video_file=env.str("VIDEO_FILE"),
             sed_video_animation=env.str("SED_VIDEO_ANIMATION"),
             sed_photo_1=env.str("SED_PHOTO_1"),
+            check_crypto_pay_photos=[
+                env.str("CHECK_CRYPTO_PAY_1"),
+                env.str("CHECK_CRYPTO_PAY_2"),
+                env.str("CHECK_CRYPTO_PAY_3"),
+                env.str("CHECK_CRYPTO_PAY_4"),
+            ],
+            check_crypto_pay_video=env.str("CHECK_CRYPTO_PAY_VIDEO"),
+            ready_to_change_photo=env.str("READY_TO_CHANGE_PHOTO"),
         )
 
 
@@ -231,6 +242,8 @@ class TextConfig:
     media_group_caption: str
     performance_text: str
     ready_text: str
+    check_crypto_pay_text: str
+    ready_to_change_text: str
 
     @staticmethod
     def from_env(env: Env) -> "TextConfig":
@@ -259,6 +272,8 @@ class TextConfig:
             media_group_caption=env.str("MEDIA_GROUP_CAPTION"),
             performance_text=env.str("PERFORMANCE_TEXT"),
             ready_text=env.str("READY_TEXT"),
+            check_crypto_pay_text=env.str("CHECK_CRYPTO_PAY_TEXT"),
+            ready_to_change_text=env.str("READY_TO_CHANGE_TEXT"),
         )
 
 

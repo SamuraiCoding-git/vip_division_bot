@@ -9,20 +9,21 @@ from infrastructure.database.setup import create_session_pool
 from tgbot.config import Config
 from tgbot.keyboards.inline import offer_consent_keyboard, get_guide_keyboard, communication_base_keyboard, \
     pagination_keyboard, read_keyboard, guides_keyboard, ready_to_change_keyboard, community_keyboard, \
-    want_too_keyboard, together_keyboard, transformation_keyboard, choose_tariff_keyboard
+    generate_keyboard
 
 
-async def delete_messages(bot: Bot, chat_id: int, state: FSMContext):
+async def delete_messages(bot: Bot, chat_id: int, state: FSMContext, new_message_ids: list[int] = None):
     data = await state.get_data()
     message_ids = data.get("message_ids", [])
 
     for message_id in message_ids:
         try:
             await bot.delete_message(chat_id=chat_id, message_id=message_id)
-        except Exception as e:
-            print(f"Failed to delete message {message_id}: {e}")
+        except Exception:
+            pass
 
-    await state.update_data(message_ids=[])
+    await state.update_data(message_ids=new_message_ids or [])
+
 
 async def handle_deeplink(call: CallbackQuery, config, deeplink: str, state):
     deeplink_handlers = {
@@ -201,7 +202,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
         InputMediaPhoto(media=config.media.pagination_photos[1])
     ]
 
-    await call.message.answer_media_group(media_group, reply_markup=want_too_keyboard())
+    await call.message.answer_media_group(media_group, reply_markup=generate_keyboard("Хочу также ✔️"))
     await asyncio.sleep(86400)
 
     session_pool = await create_session_pool(config.db)
@@ -223,7 +224,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
             "С нами уже 1400 счастливчиков, которые уже на шаг впереди тебя, а ты что? Обратно на диван, братик? / <b>жирный шрифт</b>\n\n"
             "Решать тебе"
         )
-        await call.message.answer_photo(photo, caption=text, reply_markup=together_keyboard())
+        await call.message.answer_photo(photo, caption=text, reply_markup=generate_keyboard("🤝Я с вами"))
 
         photo_1 = config.media.pagination_photos[2]
 
@@ -236,7 +237,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
             text = (
                 "⁉️ Не пора бы и тебе, уже сделать главную трансформацию в своей жизни?"
             )
-            await call.message.answer_photo(photo, text, reply_markup=transformation_keyboard())
+            await call.message.answer_photo(photo, text, reply_markup=generate_keyboard("Ты прав, я попробую 👍🏽"))
 
         await asyncio.sleep(21600)
         user = await repo.users.select_user(call.message.chat.id)
@@ -254,7 +255,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
                 "1 месяц и ты многое для себя поймешь.\n\n"
                 "Твой выбор?"
             )
-            await call.message.answer(text, reply_markup=choose_tariff_keyboard())
+            await call.message.answer(text, reply_markup=generate_keyboard("Выбрать тариф 📊"))
 
 
 async def send_consent_request(call: CallbackQuery, state: FSMContext):
