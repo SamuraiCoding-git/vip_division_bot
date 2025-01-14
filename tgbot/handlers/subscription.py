@@ -28,7 +28,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     reference_date = datetime(2025, 1, 10)
 
     data = await state.get_data()
-    payments_opened = data['payments_opened']
+    payments_opened = data.get('payments_opened')
 
     if payments_opened == 'True' or not user.created_at <= reference_date:
         plan = await repo.plans.select_plan(callback_data.id)
