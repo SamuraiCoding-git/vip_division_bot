@@ -15,6 +15,17 @@ start_router = Router()
 start_router.message.filter(IsPrivateFilter())
 start_router.callback_query.filter(IsPrivateFilter())
 
+
+@start_router.message(CommandStart(deep_link=True))
+async def user_deeplink(message: Message, command: CommandObject, config: Config, state: FSMContext):
+    print(command.args)
+    if command.args == "9ae0a8989a14fb1263b255b24d8becf2":
+        await state.update_data(payments_opened='True')
+        await message.answer("Платежная ссылка активирована!", reply_markup=generate_keyboard("📊Выбрать тариф"))
+        return
+    text = config.text.mailing_consent_message
+    await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
+
 @start_router.message(CommandStart())
 async def user_start(message: Message, config: Config, state: FSMContext):
     message_ids = []
@@ -43,17 +54,6 @@ async def user_start(message: Message, config: Config, state: FSMContext):
         message_ids.append(sent_message.message_id)
 
     await delete_messages(message.bot, message.chat.id, state, message_ids)
-
-
-@start_router.message(CommandStart(deep_link=True))
-async def user_deeplink(message: Message, command: CommandObject, config: Config, state: FSMContext):
-    print(command.args)
-    if command.args == "9ae0a8989a14fb1263b255b24d8becf2":
-        await state.update_data(payments_opened='True')
-        await message.answer("Платежная ссылка активирована!", reply_markup=generate_keyboard("📊Выбрать тариф"))
-        return
-    text = config.text.mailing_consent_message
-    await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
 
 
 @start_router.callback_query(OfferConsentCallbackData.filter())
