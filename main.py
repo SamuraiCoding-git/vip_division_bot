@@ -85,7 +85,7 @@ async def process_request():
     try:
         form_data = request.form.to_dict()
 
-        if form_data.get('payment_status') != 'success' or form_data.get('payment_init') != 'api':
+        if form_data.get('payment_status') != 'success' and form_data.get('payment_init') != 'api':
             return jsonify({'message': 'Invalid payment status or initiation method'}), 400
 
         repo = await get_repo(config)
