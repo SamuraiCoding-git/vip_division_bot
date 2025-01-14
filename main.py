@@ -85,8 +85,8 @@ async def process_request():
     try:
         form_data = request.form.to_dict()
 
-        if form_data.get('payment_status') != 'success' and form_data.get('payment_init') != 'api':
-            return jsonify({'message': 'Invalid payment status or initiation method'}), 400
+        if form_data.get('payment_status') == 'success' and form_data.get('payment_init') == 'api':
+            return jsonify({'message': 'success'}), 200
 
         repo = await get_repo(config)
         user = await repo.users.select_user(int(form_data['client_id']))
