@@ -24,7 +24,7 @@ async def usdt_transaction_hash(message: Message, state: FSMContext):
                  reply_markup=crypto_pay_check_keyboard("tariffs"))
     else:
         sent_message = await message.answer(
-            "Неверный хэш транзакции Tron."
+            "Неверный хэш транзакции Tron.\n"
             "Отправьте ещё раз")
         await state.update_data(message_ids=[sent_message.message_id])
         return
