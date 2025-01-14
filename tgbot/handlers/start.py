@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import OfferConsentCallbackData
-from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard
+from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, generate_keyboard
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request
 
@@ -46,7 +46,11 @@ async def user_start(message: Message, config: Config, state: FSMContext):
 
 
 @start_router.message(CommandStart(deep_link=True))
-async def user_deeplink(message: Message, command: CommandObject, config: Config):
+async def user_deeplink(message: Message, command: CommandObject, config: Config, state: FSMContext):
+    if command.args == "9ae0a8989a14fb1263b255b24d8becf2":
+        await state.update_data(payments_opened='True')
+        await message.answer("Платежная ссылка активирована!", reply_markup=generate_keyboard("📊Выбрать тариф"))
+        return
     text = config.text.mailing_consent_message
     await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
 
