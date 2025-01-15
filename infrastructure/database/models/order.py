@@ -17,7 +17,6 @@ class Order(Base, TimestampMixin, TableNameMixin):
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="orders")
-    plan: Mapped["Plan"] = relationship("Plan")
 
     def __repr__(self):
         return (
