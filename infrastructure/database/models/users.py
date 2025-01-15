@@ -9,7 +9,6 @@ from infrastructure.database.models.enums import Source
 
 
 class User(Base, TimestampMixin, TableNameMixin):
-    __table_args__ = {'extend_existing': True}
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=False)
     username: Mapped[Optional[str]] = mapped_column(String(128))
     full_name: Mapped[str] = mapped_column(String(128))
