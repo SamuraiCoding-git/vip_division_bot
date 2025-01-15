@@ -16,9 +16,6 @@ class Order(Base, TimestampMixin, TableNameMixin):
     binding_id: Mapped[str] = mapped_column(String)
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
 
-    user: Mapped["User"] = relationship("User", back_populates="orders")
-    plan: Mapped["Plan"] = relationship("Plan")
-
     def __repr__(self):
         return (
             f"<Order {self.id} User: {self.user_id} Plan: {self.plan_id} Total: {self.total_price} Status: {self.is_paid}>"
