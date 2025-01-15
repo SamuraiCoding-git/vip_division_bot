@@ -13,7 +13,7 @@ class User(Base, TimestampMixin, TableNameMixin):
     username: Mapped[Optional[str]] = mapped_column(String(128))
     full_name: Mapped[str] = mapped_column(String(128))
     plan_id: Mapped[Optional[int]] = mapped_column(BIGINT, ForeignKey("plans.id"), nullable=True)
-    source: Mapped[Source] = mapped_column(Enum(Source), nullable=False, default=Source.DIRECT)
+    # source: Mapped[Source] = mapped_column(Enum(Source), nullable=False, default=Source.DIRECT)
     # subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="user")
     # deep_links: Mapped[list["DeepLink"]] = relationship("DeepLink")
 
