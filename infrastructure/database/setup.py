@@ -17,7 +17,7 @@ async def create_session_pool(db: DbConfig, echo=False) -> Callable[[], AsyncCon
     )
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all, checkfirst=True, extend_existing=True)
+        await conn.run_sync(Base.metadata.create_all, checkfirst=True)
 
     session_pool = sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
     return session_pool
