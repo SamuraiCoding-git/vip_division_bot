@@ -17,4 +17,4 @@ class User(Base, TimestampMixin, TableNameMixin):
     # deep_links: Mapped[list["DeepLink"]] = relationship("DeepLink")
 
     plan: Mapped["Plan"] = relationship("Plan", back_populates="plans")
-    orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="orders")
