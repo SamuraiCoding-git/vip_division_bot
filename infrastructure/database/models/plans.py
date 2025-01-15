@@ -13,8 +13,6 @@ class Plan(Base, TimestampMixin, TableNameMixin):
     usd_price: Mapped[float] = mapped_column(Float, nullable=False)
     duration: Mapped[int] = mapped_column(Integer)
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="plan")
-
     def __repr__(self):
         return (
             f"<Plan {self.id} {self.name} {self.original_price} {self.discounted_price} {self.duration}>"
