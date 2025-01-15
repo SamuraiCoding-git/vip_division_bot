@@ -76,7 +76,7 @@ async def ded_gs(call: CallbackQuery, config: Config):
 
     await call.message.answer_voice(voice=voice, caption=caption, reply_markup=generate_keyboard("Купить доступ на месяц ✅"))
 
-    await asyncio.sleep(180)
+    await asyncio.sleep(300)
 
     repo = await get_repo(config)
 
