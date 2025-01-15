@@ -12,4 +12,4 @@ class Plan(Base, TimestampMixin, TableNameMixin):
     discounted_price: Mapped[DECIMAL] = mapped_column(DECIMAL(10, 2), nullable=False)
     duration: Mapped[int] = mapped_column(Integer)
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="plan")
+    users: Mapped[list["User"]] = relationship("User", back_populates="users")
