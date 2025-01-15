@@ -1,4 +1,3 @@
-from sqlalchemy import inspect
 from sqlalchemy.orm import sessionmaker
 
 from infrastructure.database.models import Base
@@ -17,17 +16,8 @@ async def create_session_pool(db: DbConfig, echo=False) -> Callable[[], AsyncCon
         echo=echo,
     )
 
-    async def create_tables():
-        # Create an inspector object
-        inspector = inspect(engine)
-
-        # Check if the table exists
-        if 'users' not in inspector.get_table_names():
-            # Table doesn't exist, create all tables
-            async with engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all, checkfirst=True)
-        else:
-            print("Table 'users' already exists. Skipping table creation.")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all, checkfirst=True, extend_existing=True)
 
     session_pool = sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
     return session_pool
