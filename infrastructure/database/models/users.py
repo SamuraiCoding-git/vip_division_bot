@@ -14,4 +14,4 @@ class User(Base, TimestampMixin, TableNameMixin):
     full_name: Mapped[str] = mapped_column(String(128))
     source: Mapped[Source] = mapped_column(Enum(Source), nullable=False, default=Source.DIRECT)
     # subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="user")
-    deep_links: Mapped[list["DeepLink"]] = relationship("DeepLink")
+    # deep_links: Mapped[list["DeepLink"]] = relationship("DeepLink")
