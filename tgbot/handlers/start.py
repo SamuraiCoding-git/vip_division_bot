@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.filters import CommandStart, CommandObject
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
 from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
@@ -21,6 +21,23 @@ async def user_deeplink(message: Message, command: CommandObject, config: Config
     if command.args == "9ae0a8989a14fb1263b255b24d8becf2":
         await state.update_data(payments_opened='True')
         await message.answer("Платежная ссылка активирована!", reply_markup=generate_keyboard("📊Выбрать тариф"))
+        return
+    elif command.args == 'ded_gs':
+        photo = "AgACAgIAAxkBAAEBJHBnh3_9jUk_UjRzcdmW0oEyCmwazAAC8-MxG8VuQUgclQED-Tf_RgEAAwIAA3kAAzYE"
+
+        text = (
+            "Успей попасть на ведение к главному коучу за 1390\n\n"
+            "В приватном канале Рома ДЕД (главный коуч) устраивает 7-ми дневный тренинг по полному раскрытию потенциала.\n\n"
+            "Через него уже прошли 1000-чи учеников, и их результаты поражают.\n\n"
+            "Слушай гс от Романа с вводными на неделю и присоединяйся к тренингу."
+        )
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Слушать ГС от Деда 🔥", callback_data="ded_gs")
+            ]
+        ])
+        await message.answer_photo(photo, caption=text, reply_markup=keyboard)
         return
     text = config.text.mailing_consent_message
     await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
