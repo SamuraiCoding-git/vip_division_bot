@@ -1,21 +1,17 @@
 from typing import Optional
 
-from sqlalchemy import BIGINT, ForeignKey, Boolean
-from sqlalchemy import String
+from sqlalchemy import BIGINT, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, TimestampMixin, TableNameMixin
+from infrastructure.database.models import Base
+from infrastructure.database.models.base import TimestampMixin, TableNameMixin
+from infrastructure.database.models.enums import Source
 
 
 class User(Base, TimestampMixin, TableNameMixin):
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=False)
     username: Mapped[Optional[str]] = mapped_column(String(128))
     full_name: Mapped[str] = mapped_column(String(128))
-    plan_id: Mapped[Optional[int]] = mapped_column(BIGINT, ForeignKey("plans.id"), nullable=True)
-    is_recurrent: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    plan: Mapped["Plan"] = relationship("Plan", back_populates="users")
-    orders: Mapped[list["Order"]] = relationship("Order", back_populates="user")
-
-    def __repr__(self):
-        return f"<User {self.id} {self.username} {self.full_name} Plan: {self.plan_id}>"
+    source: Mapped[Source] = mapped_column(Enum(Source), nullable=False, default=Source.DIRECT)
+    subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="user")
+    deep_links: Mapped[list["DeepLink"]] = relationship("DeepLink")
