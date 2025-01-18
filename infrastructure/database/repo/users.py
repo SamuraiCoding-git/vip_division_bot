@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import select, update, literal, and_, not_, func, text, cast, DateTime
+from sqlalchemy import select, update, literal, and_, not_, text
 from sqlalchemy.dialects.postgresql import insert
 
 from infrastructure.database.models import User, Order
@@ -10,21 +10,13 @@ from infrastructure.database.repo.base import BaseRepo
 
 class UserRepo(BaseRepo):
     async def get_or_create_user(
-        self,
-        id: int,
-        full_name: str,
-        username: Optional[str] = None,
-        plan_id: Optional[int] = None,
+            self,
+            id: int,
+            full_name: str,
+            username: Optional[str] = None,
+            plan_id: Optional[int] = None,
+            source: str = "default",  # Adding 'source' field with a default value
     ) -> Optional[User]:
-        """
-        Creates or updates a new user in the database and returns the user object.
-        :param id: The user's ID.
-        :param full_name: The user's full name.
-        :param username: The user's username. It's an optional parameter.
-        :param plan_id: The ID of the plan the user has purchased. It's an optional parameter.
-        :return: User object, None if there was an error while making a transaction.
-        """
-
         insert_stmt = (
             insert(User)
             .values(
@@ -32,17 +24,21 @@ class UserRepo(BaseRepo):
                 username=username,
                 full_name=full_name,
                 plan_id=plan_id,
+                source=source,  # Include source in the values
             )
             .on_conflict_do_update(
                 index_elements=[User.id],
-                set_=dict(
-                    username=username,
-                    full_name=full_name,
-                    plan_id=plan_id,
-                ),
+                set_={
+                    "username": username,
+                    "full_name": full_name,
+                    "plan_id": plan_id,
+                    "source": source,  # Update source if there's a conflict
+                },
             )
             .returning(User)
         )
+
+        # Execute the insert/update statement
         result = await self.session.execute(insert_stmt)
 
         await self.session.commit()

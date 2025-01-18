@@ -8,6 +8,6 @@ async def get_repo_generator(config: Config):
     async with session_pool() as session:
         yield RequestsRepo(session)
 
-async def get_repo(config: Config):
+async def get_repo(config: Config) -> RequestsRepo:
     async for repo in get_repo_generator(config):
         return repo
