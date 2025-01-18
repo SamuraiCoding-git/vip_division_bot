@@ -33,6 +33,7 @@ async def set_bot_commands(bot: Bot):
         BotCommand(command="subscription", description="⚡ Моя подписка"),
         BotCommand(command="biography", description="🏆 Биография"),
     ]
+    await bot.delete_my_commands()
     await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats())
 
 
