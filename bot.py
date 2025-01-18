@@ -35,6 +35,8 @@ async def set_bot_commands(bot: Bot):
     ]
     await bot.delete_my_commands(scope=BotCommandScopeAllGroupChats())
     await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats())
+    a = await bot.get_my_commands()
+    print(a)
 
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
