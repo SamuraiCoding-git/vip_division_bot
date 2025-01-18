@@ -18,7 +18,10 @@ from tgbot.services import broadcaster
 
 
 
-from aiogram.types import BotCommand
+from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
+
+from tgbot.utils.db_utils import get_repo
+
 
 async def set_bot_commands(bot: Bot):
     commands = [
@@ -30,7 +33,7 @@ async def set_bot_commands(bot: Bot):
         BotCommand(command="subscription", description="⚡ Моя подписка"),
         BotCommand(command="biography", description="🏆 Биография"),
     ]
-    await bot.set_my_commands(commands)
+    await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats)
 
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
@@ -57,6 +60,10 @@ def register_global_middlewares(dp: Dispatcher, config: Config, scheduler, sessi
     for middleware_type in middleware_types:
         dp.message.outer_middleware(middleware_type)
         dp.callback_query.outer_middleware(middleware_type)
+
+async def get_admin_ids(config: Config):
+    repo = await get_repo(config)
+    return [i.id for i in await repo.admins.get_all_admins()]
 
 def setup_logging():
     """
@@ -137,6 +144,7 @@ async def main():
     dp = Dispatcher(storage=storage)
     dp.include_routers(*routers_list)
     session_pool = await create_session_pool(config.db, echo=False)
+    admin_ids = await get_admin_ids(config)
 
     scheduler = setup_scheduler(bot, config, storage, session_pool)
 
@@ -144,7 +152,7 @@ async def main():
 
     await create_session_pool(config.db)
     await set_bot_commands(bot)
-    await on_startup(bot, config.tg_bot.admin_ids)
+    await on_startup(bot, admin_ids)
     await dp.start_polling(bot)
 
 
