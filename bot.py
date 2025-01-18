@@ -18,7 +18,7 @@ from tgbot.services import broadcaster
 
 
 
-from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
+from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeAllGroupChats
 
 from tgbot.utils.db_utils import get_repo
 
@@ -33,9 +33,8 @@ async def set_bot_commands(bot: Bot):
         BotCommand(command="subscription", description="⚡ Моя подписка"),
         BotCommand(command="biography", description="🏆 Биография"),
     ]
-    o = await bot.delete_my_commands()
-    print(o)
-    # await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats())
+    await bot.delete_my_commands(scope=BotCommandScopeAllGroupChats())
+    await bot.set_my_commands(commands, scope=BotCommandScopeAllPrivateChats())
 
 
 async def on_startup(bot: Bot, admin_ids: list[int]):
