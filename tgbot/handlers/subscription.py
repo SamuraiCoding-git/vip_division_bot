@@ -24,8 +24,8 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 @subscription_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     repo = await get_repo(config)
-    user = await repo.users.select_user(call.message.chat.id)
-    reference_date = datetime(2025, 1, 10)
+    # user = await repo.users.select_user(call.message.chat.id)
+    # reference_date = datetime(2025, 1, 10)
 
     # data = await state.get_data()
     # payments_opened = data.get('payments_opened')
@@ -78,6 +78,8 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     repo = await get_repo(config)
 
     order = await repo.orders.get_latest_paid_order_by_user(chat_id)
+
+    print(order)
 
     if order:
         plan = await repo.plans.select_plan(order.plan_id)
