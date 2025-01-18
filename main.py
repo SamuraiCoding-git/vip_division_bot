@@ -80,6 +80,24 @@ def create_invite_link(target_chat_id):
         return None
 
 
+def unban_user_from_chat_or_channel(chat_id, user_id):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/unbanChatMember"
+        payload = {
+            "chat_id": chat_id,
+            "user_id": user_id
+        }
+        response = requests.post(url, json=payload)
+        if response.ok:
+            print(f"User {user_id} unbanned successfully from chat {chat_id}.")
+        else:
+            print(f"Failed to unban user {user_id} from chat {chat_id}: {response.text}")
+        return response.ok
+    except Exception as e:
+        print(f"Error unbanning user {user_id} from chat {chat_id}: {e}")
+        return False
+
+
 @app.route('/', methods=['POST'])
 async def process_request():
     try:
@@ -136,6 +154,12 @@ async def process_request():
         ]
         if not send_telegram_message("sendVideo", chat_id, VIDEO_FILE_ID, caption_video, buttons_video):
             return jsonify({'error': 'Failed to send video notification'}), 500
+
+        # Unban the user from the private chat and private channel after successful payment
+        if not unban_user_from_chat_or_channel(PRIVATE_CHANNEL_ID, chat_id):
+            return jsonify({'error': 'Failed to unban user from private channel'}), 500
+        if not unban_user_from_chat_or_channel(PRIVATE_CHAT_ID, chat_id):
+            return jsonify({'error': 'Failed to unban user from private chat'}), 500
 
         return jsonify({'message': 'success'}), 200
 
