@@ -1,3 +1,4 @@
+import asyncio
 import json
 import hmac
 import hashlib
@@ -152,6 +153,7 @@ async def process_request():
         buttons_video = [
             [{"text": "1️⃣ Изучить для начала", "url": "https://telegra.ph/S-chego-nachat-chitat-privatnyj-kanal-12-23"}]
         ]
+        await asyncio.sleep(1800)
         if not send_telegram_message("sendVideo", chat_id, VIDEO_FILE_ID, caption_video, buttons_video):
             return jsonify({'error': 'Failed to send video notification'}), 500
 
