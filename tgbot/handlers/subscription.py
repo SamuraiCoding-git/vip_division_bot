@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta, datetime
 
 from aiogram import F, Router, Bot
@@ -166,6 +167,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         VIDEO_FILE_ID = config.media.check_crypto_pay_video
 
         caption = config.text.check_crypto_pay_text.replace("{full_name}", call.message.chat.full_name)
+        await asyncio.sleep(1800)
         await call.message.answer_video(VIDEO_FILE_ID, caption=caption, reply_markup=instruction_keyboard())
     else:
         await call.answer(result, show_alert=True)
