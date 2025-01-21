@@ -114,26 +114,26 @@ async def send_video_notification(chat_id, user):
         print(f"Error in send_video_notification: {e}")
 
 @app.route('/', methods=['POST'])
-async def process_request():
+def process_request():
     try:
         form_data = request.form.to_dict()
 
         if form_data.get('payment_status') == 'success' and form_data.get('payment_init') == 'api':
             return jsonify({'message': 'success'}), 200
 
-        repo = await get_repo(config)
-        user = await repo.users.select_user(int(form_data['client_id']))
+        repo = asyncio.run(get_repo(config))
+        user = asyncio.run(repo.users.select_user(int(form_data['client_id'])))
         if not user:
             return jsonify({'error': 'User not found'}), 404
 
         chat_id = user.id
-        order = await repo.orders.get_order_by_id(int(form_data['order_num']))
+        order = asyncio.run(repo.orders.get_order_by_id(int(form_data['order_num'])))
 
         if not order:
             return jsonify({'error': 'Order not found'}), 404
 
-        await repo.orders.update_order_payment_status(order.id, True, form_data.get('binding_id'))
-        await repo.users.update_plan_id(chat_id, order.plan_id)
+        asyncio.run(repo.orders.update_order_payment_status(order.id, True, form_data.get('binding_id')))
+        asyncio.run(repo.users.update_plan_id(chat_id, order.plan_id))
 
         photo_id = PHOTO_ID_DICT.get(order.plan_id)
         if not photo_id:
@@ -154,7 +154,7 @@ async def process_request():
             return jsonify({'error': 'Failed to send photo notification'}), 500
 
         # Start background task for sending video notification
-        await asyncio.create_task(send_video_notification(chat_id, user))
+        asyncio.run(send_video_notification(chat_id, user))
 
         # Unban the user from the private chat and private channel after successful payment
         if not unban_user_from_chat_or_channel(PRIVATE_CHANNEL_ID, chat_id):
