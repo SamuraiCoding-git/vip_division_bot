@@ -4,8 +4,6 @@ import hmac
 import hashlib
 import requests
 from flask import Flask, request, jsonify
-from infrastructure.database.repo.requests import RequestsRepo
-from infrastructure.database.setup import create_session_pool
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
 
@@ -18,14 +16,13 @@ PRIVATE_CHAT_ID = '-1002008772427'
 config = load_config(".env")
 
 PHOTO_ID_DICT = {
-            1: config.media.check_crypto_pay_photos[0],
-            2: config.media.check_crypto_pay_photos[1],
-            3: config.media.check_crypto_pay_photos[2],
-            4: config.media.check_crypto_pay_photos[3]
-        }
+    1: config.media.check_crypto_pay_photos[0],
+    2: config.media.check_crypto_pay_photos[1],
+    3: config.media.check_crypto_pay_photos[2],
+    4: config.media.check_crypto_pay_photos[3]
+}
 
 VIDEO_FILE_ID = config.media.check_crypto_pay_video
-
 
 def create_hmac(data, key, algo='sha256'):
     try:
@@ -36,7 +33,6 @@ def create_hmac(data, key, algo='sha256'):
     except Exception as e:
         print(f"Error in HMAC creation: {e}")
         return None
-
 
 def send_telegram_message(method, chat_id, media_id, caption, buttons=None):
     try:
@@ -63,7 +59,6 @@ def send_telegram_message(method, chat_id, media_id, caption, buttons=None):
         print(f"Error sending message: {e}")
         return False
 
-
 def create_invite_link(target_chat_id):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
@@ -79,7 +74,6 @@ def create_invite_link(target_chat_id):
     except Exception as e:
         print(f"Error creating invite link: {e}")
         return None
-
 
 def unban_user_from_chat_or_channel(chat_id, user_id):
     try:
@@ -98,6 +92,26 @@ def unban_user_from_chat_or_channel(chat_id, user_id):
         print(f"Error unbanning user {user_id} from chat {chat_id}: {e}")
         return False
 
+async def send_video_notification(chat_id, user):
+    try:
+        await asyncio.sleep(1800)  # Delay for 1800 seconds
+        caption_video = (
+            f"{user.full_name}, приветствуем тебя, бро!\n\n"
+            "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
+            "Я знаю как тебе это дать!\n\n"
+            "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
+            "В закрепе канала ты найдёшь:\n"
+            "1 — первый пост (начни с него)\n"
+            "2 — навигацию по темам для удобства и поиска информации (в описании канала)\n"
+            "3 — Не забудь вступить в ЧАТ для общения с парнями\n\n"
+            "Переходи по кнопке ИНСТРУКЦИЯ для новичка и начинай собирать эту жизнь!"
+        )
+        buttons_video = [
+            [{"text": "1️⃣ Изучить для начала", "url": "https://telegra.ph/S-chego-nachat-chitat-privatnyj-kanal-12-23"}]
+        ]
+        send_telegram_message("sendVideo", chat_id, VIDEO_FILE_ID, caption_video, buttons_video)
+    except Exception as e:
+        print(f"Error in send_video_notification: {e}")
 
 @app.route('/', methods=['POST'])
 async def process_request():
@@ -139,23 +153,8 @@ async def process_request():
         if not send_telegram_message("sendPhoto", chat_id, photo_id, caption_photo, buttons_photo):
             return jsonify({'error': 'Failed to send photo notification'}), 500
 
-        caption_video = (
-            f"{user.full_name}, приветствуем тебя, бро!\n\n"
-            "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
-            "Я знаю как тебе это дать!\n\n"
-            "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
-            "В закрепе канала ты найдёшь:\n"
-            "1 — первый пост (начни с него)\n"
-            "2 — навигацию по темам для удобства и поиска информации (в описании канала)\n"
-            "3 — Не забудь вступить в ЧАТ для общения с парнями\n\n"
-            "Переходи по кнопке ИНСТРУКЦИЯ для новичка и начинай собирать эту жизнь!"
-        )
-        buttons_video = [
-            [{"text": "1️⃣ Изучить для начала", "url": "https://telegra.ph/S-chego-nachat-chitat-privatnyj-kanal-12-23"}]
-        ]
-        await asyncio.sleep(1800)
-        if not send_telegram_message("sendVideo", chat_id, VIDEO_FILE_ID, caption_video, buttons_video):
-            return jsonify({'error': 'Failed to send video notification'}), 500
+        # Start background task for sending video notification
+        await asyncio.create_task(send_video_notification(chat_id, user))
 
         # Unban the user from the private chat and private channel after successful payment
         if not unban_user_from_chat_or_channel(PRIVATE_CHANNEL_ID, chat_id):
@@ -168,7 +167,6 @@ async def process_request():
     except Exception as e:
         print(f"Unexpected error: {e}")
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
