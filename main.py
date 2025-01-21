@@ -3,11 +3,14 @@ import json
 import hmac
 import hashlib
 import requests
-from flask import Flask, request, jsonify
+from aiohttp import web
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
+from celery import Celery
 
-app = Flask(__name__)
+# Redis and Celery configuration
+REDIS_URL = "redis://:B7dG39pFzKvXrQwL5M2N8T1C4J6Y9H3P7Xv5RfQK2W8L9Z3TpVJ@92.119.114.185:6379/0"
+celery = Celery("tasks", broker=REDIS_URL, backend=REDIS_URL)
 
 SECRET_KEY = 'd9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c'
 TELEGRAM_BOT_TOKEN = '7926443493:AAF2mhVZivQttPdVjO4VC5HQK2RLHfAnUu8'
@@ -92,11 +95,13 @@ def unban_user_from_chat_or_channel(chat_id, user_id):
         print(f"Error unbanning user {user_id} from chat {chat_id}: {e}")
         return False
 
-async def send_video_notification(chat_id, user):
+@celery.task
+def send_video_notification(chat_id, user_full_name):
     try:
-        await asyncio.sleep(1800)  # Delay for 1800 seconds
+        import time
+        time.sleep(1800)  # Delay for 1800 seconds
         caption_video = (
-            f"{user.full_name}, приветствуем тебя, бро!\n\n"
+            f"{user_full_name}, приветствуем тебя, бро!\n\n"
             "Я заявляю с полной уверенностью, что знаю все, что ты хочешь получить в этой жизни.\n"
             "Я знаю как тебе это дать!\n\n"
             "<b>ТЫ ХОЧЕШЬ ТРЁХ ВЕЩЕЙ — ТРАХАТЬСЯ, ВЫЖИТЬ И БЫТЬ ЛУЧШЕ ОСТАЛЬНЫХ.</b>\n\n"
@@ -113,37 +118,36 @@ async def send_video_notification(chat_id, user):
     except Exception as e:
         print(f"Error in send_video_notification: {e}")
 
-@app.route('/', methods=['POST'])
-def process_request():
+async def handle_request(request):
     try:
-        form_data = request.form.to_dict()
+        form_data = await request.post()
 
         if form_data.get('payment_status') == 'success' and form_data.get('payment_init') == 'api':
-            return jsonify({'message': 'success'}), 200
+            return web.json_response({'message': 'success'}, status=200)
 
-        repo = asyncio.run(get_repo(config))
-        user = asyncio.run(repo.users.select_user(int(form_data['client_id'])))
+        repo = await get_repo(config)
+        user = await repo.users.select_user(int(form_data['client_id']))
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return web.json_response({'error': 'User not found'}, status=404)
 
         chat_id = user.id
-        order = asyncio.run(repo.orders.get_order_by_id(int(form_data['order_num'])))
+        order = await repo.orders.get_order_by_id(int(form_data['order_num']))
 
         if not order:
-            return jsonify({'error': 'Order not found'}), 404
+            return web.json_response({'error': 'Order not found'}, status=404)
 
-        asyncio.run(repo.orders.update_order_payment_status(order.id, True, form_data.get('binding_id')))
-        asyncio.run(repo.users.update_plan_id(chat_id, order.plan_id))
+        await repo.orders.update_order_payment_status(order.id, True, form_data.get('binding_id'))
+        await repo.users.update_plan_id(chat_id, order.plan_id)
 
         photo_id = PHOTO_ID_DICT.get(order.plan_id)
         if not photo_id:
-            return jsonify({'error': 'Invalid plan ID'}), 400
+            return web.json_response({'error': 'Invalid plan ID'}, status=400)
 
         channel_invite_link = create_invite_link(PRIVATE_CHANNEL_ID)
         chat_invite_link = create_invite_link(PRIVATE_CHAT_ID)
 
         if not channel_invite_link or not chat_invite_link:
-            return jsonify({'error': 'Failed to create invite links'}), 500
+            return web.json_response({'error': 'Failed to create invite links'}, status=500)
 
         caption_photo = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
         buttons_photo = [
@@ -151,22 +155,25 @@ def process_request():
             [{"text": "🔺 ВСТУПИТЬ В ЧАТ", "url": chat_invite_link}]
         ]
         if not send_telegram_message("sendPhoto", chat_id, photo_id, caption_photo, buttons_photo):
-            return jsonify({'error': 'Failed to send photo notification'}), 500
+            return web.json_response({'error': 'Failed to send photo notification'}, status=500)
 
-        # Start background task for sending video notification
-        asyncio.run(send_video_notification(chat_id, user))
+        # Start Celery task for sending video notification
+        send_video_notification.delay(chat_id, user.full_name)
 
         # Unban the user from the private chat and private channel after successful payment
         if not unban_user_from_chat_or_channel(PRIVATE_CHANNEL_ID, chat_id):
-            return jsonify({'error': 'Failed to unban user from private channel'}), 500
+            return web.json_response({'error': 'Failed to unban user from private channel'}, status=500)
         if not unban_user_from_chat_or_channel(PRIVATE_CHAT_ID, chat_id):
-            return jsonify({'error': 'Failed to unban user from private chat'}), 500
+            return web.json_response({'error': 'Failed to unban user from private chat'}, status=500)
 
-        return jsonify({'message': 'success'}), 200
+        return web.json_response({'message': 'success'}, status=200)
 
     except Exception as e:
         print(f"Unexpected error: {e}")
-        return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
+        return web.json_response({'error': 'An unexpected error occurred', 'details': str(e)}, status=500)
+
+app = web.Application()
+app.router.add_post('/', handle_request)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    web.run_app(app, host='0.0.0.0', port=5000)
