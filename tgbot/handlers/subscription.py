@@ -5,6 +5,7 @@ from aiogram import F, Router, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 
+from infrastructure.database.models import Payment
 from main import create_invite_link
 from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
@@ -38,13 +39,11 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     #     await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel_keyboard())
     #     return
     plan = await repo.plans.select_plan(callback_data.id)
-    order = await repo.orders.create_order(call.message.chat.id,
-                                           callback_data.id,
-                                           plan.original_price)
+    payment = await repo.payments.create_payment(call.message.chat.id)
 
-    if plan.discounted_price != plan.original_price:
+    if plan.original_price != plan.discounted_price:
         discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
-        price_text = f"<b>Стоимость:</b> <s>{plan.discounted_price} ₽</s> {plan.original_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
+        price_text = f"<b>Стоимость:</b> <s>{plan.original_price} ₽</s> {plan.discounted_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
 
@@ -52,18 +51,18 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
 
     await state.update_data(usd_price=plan.usd_price)
     await state.update_data(plan_id=plan.id)
-    await state.update_data(order_id=order.id)
+    await state.update_data(order_id=payment.id)
 
     product = [
         {
             "quantity": 1,
             "name": plan.name[:-2],
-            "price": int(plan.original_price),
+            "price": int(plan.discounted_price),
             "sku": plan.id
         }
     ]
 
-    link = generate_payment_link(str(call.message.chat.id), order.id, product, config.payment.token, config.misc.payment_form_url)
+    link = generate_payment_link(str(call.message.chat.id), payment.id, product, config.payment.token, config.misc.payment_form_url)
 
     sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
 
@@ -79,8 +78,6 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     repo = await get_repo(config)
 
     order = await repo.orders.get_latest_paid_order_by_user(chat_id)
-
-    print(order)
 
     if order:
         plan = await repo.plans.select_plan(order.plan_id)
