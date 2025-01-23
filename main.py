@@ -138,8 +138,10 @@ async def handle_request(request):
         if not payment:
             return web.json_response({'error': 'Payment not found'}, status=404)
 
-        await repo.payments.create_payment(payment)
-        await repo.subscriptions.create_subscription(payment.subscription)
+        payment = await repo.payments.create_payment(payment)
+        subscription = await repo.subscriptions.create_subscription(payment.subscription)
+        print("Payment: ", payment)
+        print("Subscription: ", subscription)
 
         photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)
         if not photo_id:
