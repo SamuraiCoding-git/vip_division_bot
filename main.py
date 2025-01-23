@@ -120,7 +120,6 @@ def send_video_notification(chat_id, user_full_name):
         print(f"Error in send_video_notification: {e}")
 
 async def handle_request(request):
-    print("Started")
     try:
         form_data = await request.post()
 
@@ -134,6 +133,8 @@ async def handle_request(request):
             return web.json_response({'error': 'User not found'}, status=404)
 
         chat_id = user.id
+
+        print(chat_id)
 
         payment = await repo.payments.get_payment_by_id(int(form_data['order_num']))
         if not payment:
