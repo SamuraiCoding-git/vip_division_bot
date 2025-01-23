@@ -120,6 +120,7 @@ def send_video_notification(chat_id, user_full_name):
         print(f"Error in send_video_notification: {e}")
 
 async def handle_request(request):
+    print("Started")
     try:
         form_data = await request.post()
 
