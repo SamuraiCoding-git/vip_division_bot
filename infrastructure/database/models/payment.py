@@ -9,9 +9,9 @@ from infrastructure.database.models.base import TableNameMixin
 class Payment(Base, TableNameMixin):
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=False)
-    amount: Mapped[DECIMAL] = mapped_column(DECIMAL(10, 2), nullable=False)
-    currency: Mapped[str] = mapped_column(String(3), nullable=False, default="USD")
-    payment_method: Mapped[str] = mapped_column(String, nullable=False)
+    amount: Mapped[DECIMAL] = mapped_column(DECIMAL(10, 2), nullable=True)
+    currency: Mapped[str] = mapped_column(String(3), nullable=True, default="USD")
+    payment_method: Mapped[str] = mapped_column(String)
     is_successful: Mapped[bool] = mapped_column(Boolean, default=False)
     hash: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
