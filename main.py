@@ -124,6 +124,7 @@ async def handle_request(request):
         form_data = await request.post()
 
         if form_data.get('payment_status') == 'success' and form_data.get('payment_init') == 'api':
+            print("Yes")
             return web.json_response({'message': 'success'}, status=200)
 
         repo = await get_repo(config)
