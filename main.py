@@ -1,13 +1,12 @@
-import hashlib
-import hmac
+import asyncio
 import json
-
+import hmac
+import hashlib
 import requests
 from aiohttp import web
-from celery import Celery
-
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
+from celery import Celery
 
 # Redis and Celery configuration
 REDIS_URL = "redis://:B7dG39pFzKvXrQwL5M2N8T1C4J6Y9H3P7Xv5RfQK2W8L9Z3TpVJ@92.119.114.185:6379/0"
@@ -123,25 +122,24 @@ async def handle_request(request):
     try:
         form_data = await request.post()
 
-        repo = await get_repo(config)
+        if form_data.get('payment_status') == 'success' and form_data.get('payment_init') == 'api':
+            return web.json_response({'message': 'success'}, status=200)
 
+        repo = await get_repo(config)
         user = await repo.users.select_user(int(form_data['client_id']))
-        print(user)
         if not user:
             return web.json_response({'error': 'User not found'}, status=404)
 
         chat_id = user.id
+        order = await repo.orders.get_order_by_id(int(form_data['order_num']))
 
-        payment = await repo.payments.get_payment_by_id(int(form_data['order_num']))
-        if not payment:
-            return web.json_response({'error': 'Payment not found'}, status=404)
+        if not order:
+            return web.json_response({'error': 'Order not found'}, status=404)
 
-        payment = await repo.payments.create_payment(payment)
-        subscription = await repo.subscriptions.create_subscription(payment.subscription)
-        print("Payment: ", payment)
-        print("Subscription: ", subscription)
+        await repo.orders.update_order_payment_status(order.id, True, form_data.get('binding_id'))
+        await repo.users.update_plan_id(chat_id, order.plan_id)
 
-        photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)
+        photo_id = PHOTO_ID_DICT.get(order.plan_id)
         if not photo_id:
             return web.json_response({'error': 'Invalid plan ID'}, status=400)
 
