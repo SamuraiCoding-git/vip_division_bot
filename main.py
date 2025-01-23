@@ -129,12 +129,11 @@ async def handle_request(request):
         repo = await get_repo(config)
 
         user = await repo.users.select_user(int(form_data['client_id']))
+        print(user)
         if not user:
             return web.json_response({'error': 'User not found'}, status=404)
 
         chat_id = user.id
-
-        print(chat_id)
 
         payment = await repo.payments.get_payment_by_id(int(form_data['order_num']))
         if not payment:
