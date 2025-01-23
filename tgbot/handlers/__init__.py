@@ -8,8 +8,8 @@ from .payment import payment_router
 from .start import start_router
 
 routers_list = [
-    start_router,
     admin_router,
+    start_router,
     user_router,
     media_router,
     navigation_router,

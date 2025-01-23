@@ -1,7 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
+
+from infrastructure.database.models import User
 from infrastructure.database.models.admin import Admin
 from infrastructure.database.repo.base import BaseRepo
 
@@ -17,25 +21,24 @@ class AdminRepo(BaseRepo):
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
-    async def create_admin(self, id: int) -> Optional[Admin]:
-        """
-        Creates a new admin record.
-        :param id: The ID of the admin to be created.
-        :return: The created Admin object, or None if insertion failed.
-        """
+    async def get_or_create_admin(
+            self,
+            id: int
+    ) -> Optional[Admin]:
         try:
-            insert_stmt = (
-                insert(Admin)
-                .values(id=id)
-                .returning(Admin)  # Return the created object
-            )
+            admin = await self.session.get(Admin, id)
+            if admin:
+                return admin
 
-            result = await self.session.execute(insert_stmt)
+            admin = Admin(id=id)
+            self.session.add(admin)
+
             await self.session.commit()
-            return result.scalar_one_or_none()
-        except SQLAlchemyError as e:
-            await self.session.rollback()  # Rollback on error
-            raise Exception(f"Error creating admin: {e}")
+            return admin
+        except Exception as e:
+            await self.session.rollback()
+            print(f"Error in get_or_create_admin: {e}")
+            return None
 
     async def select_admin(self, admin_id: int) -> Optional[Admin]:
         """
@@ -60,6 +63,19 @@ class AdminRepo(BaseRepo):
             return result.scalars().all()
         except SQLAlchemyError as e:
             raise Exception(f"Error fetching all admins: {e}")
+
+    async def get_all_admins_user_objects(self) -> List[Tuple[Admin, User]]:
+        """
+        Retrieves all Admin objects along with their associated User objects.
+        :return: A list of tuples (Admin, User).
+        """
+        try:
+            query = select(Admin).options(joinedload(Admin.user)).order_by(Admin.id)
+            result = await self.session.execute(query)
+            admins = result.scalars().all()
+            return [(admin, admin.user) for admin in admins]
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching all admins with user objects: {e}")
 
     async def delete_admin(self, admin_id: int) -> bool:
         """

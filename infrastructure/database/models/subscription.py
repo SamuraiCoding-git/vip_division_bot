@@ -23,6 +23,5 @@ class Subscription(Base, TableNameMixin):
     user: Mapped["User"] = relationship("User", back_populates="subscriptions", foreign_keys=[user_id])  # Use the column reference
     plan: Mapped["Plan"] = relationship("Plan")
     payments: Mapped[list["Payment"]] = relationship("Payment", back_populates="subscription")
-    gifted_by_user: Mapped[Optional["User"]] = relationship("User", foreign_keys=[gifted_by])  # Use the column reference
- # specify the foreign key here
+    gifted_by_user: Mapped[Optional["User"]] = relationship("User", foreign_keys=[gifted_by])  # Use the column reference specify the foreign key here
 

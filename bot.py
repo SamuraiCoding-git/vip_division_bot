@@ -18,7 +18,7 @@ from tgbot.services import broadcaster
 
 
 
-from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeAllGroupChats
+from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
 from tgbot.utils.db_utils import get_repo
 

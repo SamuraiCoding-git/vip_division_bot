@@ -1,8 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from infrastructure.database.models import Admin
 from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallbackData, TariffsCallbackData, \
-    GuidesCallbackData, PaginationCallbackData, ReadingCallbackData
+    GuidesCallbackData, PaginationCallbackData, ReadingCallbackData, AdminsListCallbackData, DeleteAdminCallbackData, \
+    SettingsCallbackData, BlacklistCallbackData
 
 
 def offer_consent_keyboard(extended=True, deeplink=None):
@@ -427,6 +429,66 @@ def podcast_channel_keyboard():
 def admin_keyboard():
     buttons = [
         [
-            InlineKeyboardButton(text="Статус пользователя")
+            InlineKeyboardButton(text="Добавить админа", callback_data="add_admin"),
+            InlineKeyboardButton(text="Cписок админов", callback_data="admin_list")
+        ],
+        [
+            InlineKeyboardButton(text="Настройки", callback_data="admin_settings")
+        ],
+        [
+            InlineKeyboardButton(text="Статус пользователя", switch_inline_query_current_chat="")
         ]
     ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+def user_status_keyboard(data):
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text=f"{'Разблокировать' if data['is_blocked'] else 'Заблокировать'} пользователя",
+                callback_data=BlacklistCallbackData(
+                                id=data['id'],
+                                is_blocked=data['is_blocked']).pack()
+            )
+        ]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+def admins_list_keyboard(admins_list: list[Admin]):
+    keyboard = InlineKeyboardBuilder()
+
+    for admin in admins_list:
+        keyboard.add(InlineKeyboardButton(text=f"{admin.id}",
+                                          callback_data=AdminsListCallbackData(id=admin.id).pack()))
+
+    keyboard.adjust(1)
+    return keyboard.as_markup()
+
+def settings_keyboard(settings: dict, state: str):
+    keyboard = InlineKeyboardBuilder()
+    for setting in settings.values():
+        title = setting['title']
+        status_icon = '✅' if setting['value'] else '❌'
+        callback_data = SettingsCallbackData(id=setting['id'], value=setting['value']).pack()
+        keyboard.button(
+            text=f"{title} {status_icon}",
+            callback_data=callback_data
+        )
+    keyboard.add(InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()))
+    keyboard.adjust(1)
+    return keyboard.as_markup()
+
+
+
+def admin_delete_keyboard(id, state):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="❌ Удалить", callback_data=DeleteAdminCallbackData(id=id).pack())
+        ],
+        [
+            InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack())
+        ]
+    ])
+    return keyboard

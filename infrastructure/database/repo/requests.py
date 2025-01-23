@@ -3,8 +3,12 @@ from dataclasses import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from infrastructure.database.repo.admin import AdminRepo
+from infrastructure.database.repo.blacklist import BlacklistRepo
 from infrastructure.database.repo.order import OrderRepo
+from infrastructure.database.repo.payment import PaymentRepo
 from infrastructure.database.repo.plans import PlanRepo
+from infrastructure.database.repo.setting import SettingRepo
+from infrastructure.database.repo.subscription import SubscriptionRepo
 from infrastructure.database.repo.users import UserRepo
 
 
@@ -33,3 +37,19 @@ class RequestsRepo:
     @property
     def admins(self) -> AdminRepo:
         return AdminRepo(self.session)
+
+    @property
+    def settings(self) -> SettingRepo:
+        return SettingRepo(self.session)
+
+    @property
+    def blacklist(self) -> BlacklistRepo:
+        return BlacklistRepo(self.session)
+
+    @property
+    def payments(self) -> PaymentRepo:
+        return PaymentRepo(self.session)
+
+    @property
+    def subscriptions(self) -> SubscriptionRepo:
+        return SubscriptionRepo(self.session)

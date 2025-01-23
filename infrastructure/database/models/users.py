@@ -1,7 +1,7 @@
 from typing import Optional
 
 from sqlalchemy import BIGINT, String, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, class_mapper
 
 from infrastructure.database.models import Base
 from infrastructure.database.models.base import TimestampMixin, TableNameMixin
@@ -17,5 +17,7 @@ class User(Base, TimestampMixin, TableNameMixin):
     subscriptions: Mapped[list["Subscription"]] = relationship("Subscription", back_populates="user", foreign_keys="Subscription.user_id")
     deep_links: Mapped[list["DeepLink"]] = relationship("DeepLink")
     admin: Mapped["Admin"] = relationship("Admin", back_populates="user", uselist=False)
+    blacklist_entry = relationship("Blacklist", back_populates="user", cascade="all, delete-orphan")
 
-
+    def to_dict(self):
+        return {column.key: getattr(self, column.key) for column in class_mapper(self.__class__).columns}

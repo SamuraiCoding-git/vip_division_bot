@@ -22,3 +22,17 @@ class PaginationCallbackData(CallbackData, prefix="pagination"):
 class ReadingCallbackData(CallbackData, prefix="reading"):
     link: str
     state: Optional[str]
+
+class AdminsListCallbackData(CallbackData, prefix="admins_list"):
+    id: int
+
+class DeleteAdminCallbackData(CallbackData, prefix="delete_admins"):
+    id: int
+
+class SettingsCallbackData(CallbackData, prefix="settings"):
+    id: int
+    value: bool
+
+class BlacklistCallbackData(CallbackData, prefix="blacklist"):
+    id: int
+    is_blocked: bool

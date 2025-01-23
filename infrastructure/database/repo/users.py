@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import select, update, literal, and_, not_, text
+from sqlalchemy import select, update, literal, and_, not_, text, cast, String
 from sqlalchemy.dialects.postgresql import insert
 
 from infrastructure.database.models import User, Order
@@ -15,7 +15,7 @@ class UserRepo(BaseRepo):
             full_name: str,
             username: Optional[str] = None,
             plan_id: Optional[int] = None,
-            source: str = "default",  # Adding 'source' field with a default value
+            source: str = "default",
     ) -> Optional[User]:
         insert_stmt = (
             insert(User)
@@ -38,7 +38,6 @@ class UserRepo(BaseRepo):
             .returning(User)
         )
 
-        # Execute the insert/update statement
         result = await self.session.execute(insert_stmt)
 
         await self.session.commit()
@@ -140,4 +139,9 @@ class UserRepo(BaseRepo):
         result = await self.session.execute(query)
 
         # Return the list of eligible orders
+        return result.scalars().all()
+
+    async def find_users_by_id_prefix(self, id_prefix: str) -> List[User]:
+        query = select(User).where(cast(User.id, String).like(f"{id_prefix}%"))
+        result = await self.session.execute(query)
         return result.scalars().all()

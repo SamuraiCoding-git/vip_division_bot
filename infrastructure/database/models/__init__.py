@@ -8,3 +8,4 @@ from .deep_link import DeepLink
 from .log import Log
 from .admin import Admin
 from .setting import Setting
+from .blacklist import Blacklist
