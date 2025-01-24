@@ -60,7 +60,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
 
     await state.update_data(usd_price=plan.usd_price)
     await state.update_data(plan_id=plan.id)
-    await state.update_data(order_id=payment.id)
+    await state.update_data(payment_id=payment.id)
 
     product = [
         {
@@ -150,7 +150,22 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
         }
         await state.clear()
         await repo.users.update_plan_id(call.message.chat.id, int(data['plan_id']))
-        await repo.orders.update_order_payment_status(int(data['order_id']), True, hash=hash)
+        payment = await repo.payments.get_payment_by_id(int(data['payment_id']))
+
+        subscription = await repo.subscriptions.get_subscription_by_id(payment.subscription_id)
+        await repo.payments.update_payment(
+            payment_id=int(data['payment_id']),
+            amount=usd_price,
+            currency="RUB",
+            payment_method="card_ru",
+            is_successful=True
+        )
+        await repo.subscriptions.update_subscription(
+            subscription_id=payment.subscription_id,
+            status="active",
+            start_date=datetime.now(),
+            end_date=datetime.now() + timedelta(days=subscription.plan_id)
+        )
         await call.message.answer_photo(
             photo=PHOTO_ID_DICT[int(data['plan_id'])],
             caption=caption,
