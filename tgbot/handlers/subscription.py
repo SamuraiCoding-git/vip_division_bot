@@ -136,7 +136,7 @@ async def toggle_recurrence(call: CallbackQuery, state: FSMContext, bot: Bot, co
 
     subscription = await repo.subscriptions.toggle_all_user_subscriptions(call.message.chat.id)
 
-    await call.answer(f"Успешно {'Включено' if subscription else 'Отключено'} продление")
+    await call.answer(f"Успешно {'включено' if subscription else 'отключено'} продление")
 
     await delete_messages(bot, call.message.chat.id, state)
 
