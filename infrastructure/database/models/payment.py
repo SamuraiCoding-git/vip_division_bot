@@ -1,13 +1,13 @@
 from typing import Optional
-from sqlalchemy import BIGINT, DECIMAL, Boolean, DateTime, ForeignKey, String
+from sqlalchemy import BIGINT, DECIMAL, Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
 from infrastructure.database.models import Base
-from infrastructure.database.models.base import TableNameMixin, TimestampMixin
+from infrastructure.database.models.base import TableNameMixin
 
 
-class Payment(Base, TableNameMixin, TimestampMixin):
+class Payment(Base, TableNameMixin):
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=False)
     amount: Mapped[DECIMAL] = mapped_column(DECIMAL(10, 2), nullable=True)
