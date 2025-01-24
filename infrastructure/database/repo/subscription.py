@@ -202,3 +202,26 @@ class SubscriptionRepo(BaseRepo):
             raise Exception(f"Error toggling is_recurrent for all subscriptions of user ID {user_id}: {e}")
         except ValueError as e:
             raise Exception(f"Validation error: {e}")
+
+    async def print_subscriptions(self, subscriptions: List[Subscription], delimiter: str = " | ") -> str:
+        """
+        Prints all properties of the provided subscriptions with a specified delimiter.
+        :param subscriptions: List of Subscription objects to print.
+        :param delimiter: The delimiter to separate the properties.
+        :return: A formatted string of subscriptions' details.
+        """
+        output = []
+        for subscription in subscriptions:
+            properties = [
+                f"ID: {subscription.id}",
+                f"User ID: {subscription.user_id}",
+                f"Plan ID: {subscription.plan_id}",
+                f"Status: {subscription.status}",
+                f"Start Date: {subscription.start_date}",
+                f"End Date: {subscription.end_date}",
+                f"Is Recurrent: {subscription.is_recurrent}",
+                f"Is Gifted: {subscription.is_gifted}",
+                f"Gifted By: {subscription.gifted_by}"
+            ]
+            output.append(delimiter.join(properties))
+        return "\n".join(output)
