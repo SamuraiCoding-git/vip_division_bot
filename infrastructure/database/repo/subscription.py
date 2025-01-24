@@ -177,29 +177,35 @@ class SubscriptionRepo(BaseRepo):
 
     async def toggle_all_user_subscriptions(self, user_id: int) -> List[bool]:
         """
-        Toggles the is_recurrent value for all subscriptions of a specific user.
-        :param user_id: The ID of the user whose subscriptions will be toggled.
-        :return: A list of updated is_recurrent values for the user's subscriptions.
+        Toggles the is_recurrent value for all active subscriptions of a specific user.
+        :param user_id: The ID of the user whose active subscriptions will be toggled.
+        :return: A list of updated is_recurrent values for the user's active subscriptions.
         """
         try:
-            query = select(Subscription).filter(Subscription.user_id == user_id)
+            # Query to get all active subscriptions for the given user
+            query = select(Subscription).filter(
+                Subscription.user_id == user_id,
+                Subscription.status == "active"
+            )
             result = await self.session.execute(query)
             subscriptions = result.scalars().all()
 
             if not subscriptions:
-                raise ValueError(f"No subscriptions found for user ID {user_id}.")
+                raise ValueError(f"No active subscriptions found for user ID {user_id}.")
 
             updated_values = []
             for subscription in subscriptions:
+                # Toggle the is_recurrent value
                 subscription.is_recurrent = not subscription.is_recurrent
                 updated_values.append(subscription.is_recurrent)
 
+            # Commit the changes to the database
             await self.session.commit()
 
             return updated_values
         except SQLAlchemyError as e:
             await self.session.rollback()
-            raise Exception(f"Error toggling is_recurrent for all subscriptions of user ID {user_id}: {e}")
+            raise Exception(f"Error toggling is_recurrent for all active subscriptions of user ID {user_id}: {e}")
         except ValueError as e:
             raise Exception(f"Validation error: {e}")
 
@@ -228,22 +234,21 @@ class SubscriptionRepo(BaseRepo):
 
     async def is_recurrent(self, user_id: int) -> bool:
         """
-        Checks if all subscriptions for a specific user with a start date are either recurrent or not.
+        Checks if all active subscriptions for a specific user are either recurrent or not.
         :param user_id: The ID of the user.
-        :return: True if all subscriptions with a start date for the user share the same 'is_recurrent' value, False otherwise.
+        :return: True if all active subscriptions for the user share the same 'is_recurrent' value, False otherwise.
         """
         try:
-            # Query the distinct count of 'is_recurrent' values for subscriptions with a start date for the given user
             query = (
                 select(func.count(func.distinct(Subscription.is_recurrent)))
-                .filter(Subscription.user_id == user_id, Subscription.start_date.isnot(None))
+                .filter(Subscription.user_id == user_id, Subscription.status == "active")
             )
             result = await self.session.execute(query)
             distinct_recurrent_count = result.scalar()
 
-            # If there's only one distinct value, all subscriptions share the same 'is_recurrent' state
             return distinct_recurrent_count == 1
         except SQLAlchemyError as e:
             raise Exception(
-                f"Error checking if all subscriptions for user {user_id} with a start date are recurrent or not: {e}")
+                f"Error checking if all active subscriptions for user {user_id} are recurrent or not: {e}")
+
 
