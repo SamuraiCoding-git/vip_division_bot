@@ -1,6 +1,4 @@
 import asyncio
-import locale
-from datetime import datetime, timedelta
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
@@ -274,9 +272,3 @@ async def send_consent_request(call: CallbackQuery, state: FSMContext):
         reply_markup=offer_consent_keyboard(False)
     )
     await state.update_data(message_ids=[sent_message.message_id])
-
-
-def get_readable_subscription_end_date(days_to_add: int) -> str:
-    locale.setlocale(locale.LC_TIME, "ru_RU.UTF-8")
-    subscription_end_date = datetime.now() + timedelta(days=days_to_add)
-    return subscription_end_date.strftime("%d %B %Y").capitalize()

@@ -9,14 +9,14 @@ from sqlalchemy.exc import IntegrityError
 from main import config
 from tgbot.config import Config, load_config
 from tgbot.filters.admin import AdminFilter
-from tgbot.handlers import subscription_router
-from tgbot.keyboards.callback_data import AdminsListCallbackData, BackCallbackData, DeleteAdminCallbackData, \
+from tgbot.keyboards.callback_data import AdminsListCallbackData, DeleteAdminCallbackData, \
     SettingsCallbackData, BlacklistCallbackData
 from tgbot.keyboards.inline import admin_keyboard, admins_list_keyboard, admin_delete_keyboard, settings_keyboard, \
     user_status_keyboard
 from tgbot.misc.admin_states import AdminStates
+from tgbot.utils.admin_utils import get_readable_subscription_end_date
 from tgbot.utils.db_utils import get_repo
-from tgbot.utils.message_utils import delete_messages, get_readable_subscription_end_date
+from tgbot.utils.message_utils import delete_messages
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
