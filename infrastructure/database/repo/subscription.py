@@ -35,7 +35,6 @@ class SubscriptionRepo(BaseRepo):
         self,
         user_id: int,
         plan_id: int,
-        gifted_by: int,
         status: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
@@ -58,7 +57,6 @@ class SubscriptionRepo(BaseRepo):
             subscription = Subscription(
                 user_id=user_id,
                 plan_id=plan_id,
-                gifted_by=gifted_by,
                 status=status,
                 start_date=start_date,
                 end_date=end_date,
