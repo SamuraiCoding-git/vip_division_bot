@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import SQLAlchemyError
 
 from infrastructure.database.models.plans import Plan
 from infrastructure.database.repo.base import BaseRepo
@@ -65,3 +66,16 @@ class PlanRepo(BaseRepo):
         query = select(Plan).order_by(Plan.id)
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def get_plans_by_discounted_price(self, price: float) -> Plan:
+        """
+        Retrieves all plans with a discounted price equal to the specified amount.
+        :param price: Discounted price to filter plans.
+        :return: A list of Plan objects.
+        """
+        try:
+            query = select(Plan).filter(Plan.discounted_price == price).order_by(Plan.discounted_price)
+            result = await self.session.execute(query)
+            return result.scalar_one_or_none()
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching plans with discounted price == {price}: {e}")

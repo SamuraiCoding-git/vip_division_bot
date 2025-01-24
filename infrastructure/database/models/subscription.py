@@ -12,12 +12,12 @@ class Subscription(Base, TableNameMixin):
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=False)
     plan_id: Mapped[int] = mapped_column(BIGINT, ForeignKey("plans.id"), nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=True)
     start_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     end_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     is_recurrent: Mapped[bool] = mapped_column(Boolean, default=False)
     is_gifted: Mapped[bool] = mapped_column(Boolean, default=False)
-    gifted_by: Mapped[Optional[int]] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=True)
+    gifted_by: Mapped[Optional[int]] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=False)
 
     # Correct the foreign_keys to use the actual column objects
     user: Mapped["User"] = relationship("User", back_populates="subscriptions", foreign_keys=[user_id])  # Use the column reference

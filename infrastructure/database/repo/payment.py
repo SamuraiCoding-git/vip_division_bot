@@ -1,5 +1,5 @@
 from typing import Optional, List
-from sqlalchemy import select, DECIMAL
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from infrastructure.database.models import Payment
 from infrastructure.database.repo.base import BaseRepo
@@ -33,21 +33,24 @@ class PaymentRepo(BaseRepo):
     async def create_payment(
         self,
         user_id: int,
+        subscription_id: int
     ) -> "Payment":
         """
         Creates a new payment record with mandatory fields.
 
         :param user_id: ID of the user making the payment.
+        :param subscription_id: ID of the associated subscription.
         :return: The created Payment object.
         """
         try:
             # Ensure required fields are provided
-            if not user_id:
-                raise ValueError("User ID is required to create a payment.")
+            if not user_id or not subscription_id:
+                raise ValueError("User ID and Subscription ID are required to create a payment.")
 
             # Create a new Payment object with minimal required fields
             payment = Payment(
                 user_id=user_id,
+                subscription_id=subscription_id
             )
 
             # Add and commit the payment to the database
@@ -60,16 +63,14 @@ class PaymentRepo(BaseRepo):
             raise Exception(f"Database error creating payment: {e}")
         except ValueError as e:
             raise Exception(f"Validation error: {e}")
-
     async def update_payment(
         self,
         payment_id: int,
-        amount: Optional[DECIMAL] = None,
+        amount: Optional[int] = None,
         currency: Optional[str] = None,
         payment_method: Optional[str] = None,
         is_successful: Optional[bool] = None,
-        hash: Optional[str] = None,
-        subscription_id: Optional[int] = None,
+        hash: Optional[str] = None
     ) -> "Payment":
         """
         Updates an existing payment record with optional fields.
@@ -100,8 +101,6 @@ class PaymentRepo(BaseRepo):
                 payment.is_successful = is_successful
             if hash is not None:
                 payment.hash = hash
-            if subscription_id is not None:
-                payment.subscription_id = subscription_id
 
             # Commit the changes
             await self.session.commit()

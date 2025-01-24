@@ -39,7 +39,16 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     #     await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel_keyboard())
     #     return
     plan = await repo.plans.select_plan(callback_data.id)
-    payment = await repo.payments.create_payment(call.message.chat.id)
+    subscription = await repo.subscriptions.create_subscription(
+        user_id=call.message.chat.id,
+        plan_id=callback_data.id,
+        gifted_by=False,
+        is_recurrent=True,
+        is_gifted=False
+    )
+    payment = await repo.payments.create_payment(
+        call.message.chat.id,
+        subscription.id)
 
     if plan.original_price != plan.discounted_price:
         discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
