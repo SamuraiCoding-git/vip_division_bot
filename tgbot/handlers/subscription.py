@@ -42,6 +42,9 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         gifted_by=call.message.chat.id if data.get('receiver') else None,
         status="pending"
     )
+
+    print(plan)
+
     payment = await repo.payments.create_payment(
         call.message.chat.id,
         subscription.id)
