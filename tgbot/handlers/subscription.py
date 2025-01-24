@@ -144,7 +144,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
     data = await state.get_data()
     hash = data.get("hash")
     usd_price = data.get("usd_price")
-    is_unique_hash = await repo.orders.is_unique_order_hash(hash)
+    is_unique_hash = await repo.payments.is_unique_payment_hash(hash)
     if not is_unique_hash:
         await call.answer("Уже есть заказ с таким хэшем", show_alert=True)
         return

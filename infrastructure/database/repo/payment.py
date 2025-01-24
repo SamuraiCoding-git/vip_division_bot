@@ -128,3 +128,13 @@ class PaymentRepo(BaseRepo):
         except SQLAlchemyError as e:
             await self.session.rollback()
             raise Exception(f"Error deleting payment with ID {payment_id}: {e}")
+
+    async def is_unique_payment_hash(self, hash: str) -> bool:
+        """
+        Checks if there is already a payment with the given hash.
+        :param hash: The hash to check for uniqueness.
+        :return: True if no payment with the same hash exists, False otherwise.
+        """
+        result = await self.session.execute(select(Payment).filter(Payment.hash == hash))
+        existing_payment = result.scalar_one_or_none()
+        return existing_payment is None
