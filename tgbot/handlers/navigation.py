@@ -183,9 +183,9 @@ async def subscription_receiver(message: Message, state: FSMContext, config: Con
 
     message_ids.append(sent_message.message_id)
 
-    await state.update_data(receiver=message.from_user.id)
-
     await state.clear()
+
+    await state.update_data(receiver=message.from_user.id)
 
     await delete_messages(message.bot, message.from_user.id, state, message_ids)
 
