@@ -17,7 +17,7 @@ class AdminFilter(BaseFilter):
         if isinstance(obj, Message):
             user_id = obj.from_user.id
         elif isinstance(obj, CallbackQuery):
-            user_id = obj.chat.id
+            user_id = obj.message.chat.id
 
         if user_id is None:
             return False
