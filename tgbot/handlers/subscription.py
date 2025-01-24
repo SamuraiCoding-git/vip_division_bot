@@ -90,8 +90,6 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
     subscriptions_status = await repo.subscriptions.is_recurrent(chat_id)
 
-    print(subscriptions_status)
-
     if subscription_days > 0:
         text = config.text.payment_success_message.replace("{days_remaining}", str(subscription_days))
         sent_message = await bot.send_message(chat_id=chat_id, text=text,
@@ -138,11 +136,15 @@ async def toggle_recurrence(call: CallbackQuery, state: FSMContext, bot: Bot, co
 
     subscription = await repo.subscriptions.toggle_all_user_subscriptions(call.message.chat.id)
 
-    print(subscription)
-
     await call.answer(f"Успешно {'включено' if subscription else 'отключено'} продление", show_alert=True)
 
-    await delete_messages(bot, call.message.chat.id, state)
+    sent_message = await call.message.edit_reply_markup(reply_markup=my_subscription_keyboard(state="menu",
+                                                                                    is_sub=True,
+                                                                                    chat_link=create_invite_link(config.misc.private_chat_id),
+                                                                                    channel_link=create_invite_link(config.misc.private_channel_id),
+                                                                                    is_recurrent=subscription))
+
+    await delete_messages(bot, call.message.chat.id, state, new_message_ids=[sent_message.message_id])
 
 @subscription_router.callback_query(F.data == "check_crypto_pay")
 async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
