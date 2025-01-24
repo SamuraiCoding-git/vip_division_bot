@@ -373,7 +373,7 @@ def crypto_pay_check_keyboard(state):
     ])
     return keyboard
 
-def join_resources_keyboard(channel_invite_link, chat_invite_link, is_recurrent):
+def join_resources_keyboard(channel_invite_link, chat_invite_link):
     buttons = [
         [
             InlineKeyboardButton(text="🔺 ВСТУПИТЬ В КАНАЛ", url=channel_invite_link)

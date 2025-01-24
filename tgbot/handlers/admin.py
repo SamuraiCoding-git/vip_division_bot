@@ -1,3 +1,5 @@
+from datetime import timedelta, datetime
+
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -7,13 +9,14 @@ from sqlalchemy.exc import IntegrityError
 from main import config
 from tgbot.config import Config, load_config
 from tgbot.filters.admin import AdminFilter
+from tgbot.handlers import subscription_router
 from tgbot.keyboards.callback_data import AdminsListCallbackData, BackCallbackData, DeleteAdminCallbackData, \
     SettingsCallbackData, BlacklistCallbackData
 from tgbot.keyboards.inline import admin_keyboard, admins_list_keyboard, admin_delete_keyboard, settings_keyboard, \
     user_status_keyboard
 from tgbot.misc.admin_states import AdminStates
 from tgbot.utils.db_utils import get_repo
-from tgbot.utils.message_utils import delete_messages
+from tgbot.utils.message_utils import delete_messages, get_readable_subscription_end_date
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
@@ -22,7 +25,7 @@ admin_router.callback_query.filter(AdminFilter())
 from aiogram.types import Message
 
 @admin_router.message(F.text.startswith("User Details:"))
-async def handle_message(message: Message, is_user_blacklisted=None):
+async def handle_message(message: Message):
     await message.delete()
     if message.text.startswith("User Details:"):
         try:
@@ -41,6 +44,8 @@ async def handle_message(message: Message, is_user_blacklisted=None):
             user = await repo.users.select_user(user_id)
             if user:
                 is_blocked = await repo.blacklist.is_blocked(user.id)
+                payments_number = await repo.payments.count_payments(user.id)
+                subscription_end_date = get_readable_subscription_end_date(await repo.subscriptions.get_combined_active_subscription_days(user.id))
                 data = {
                     "id": user.id,
                     "is_blocked": is_blocked
@@ -48,7 +53,9 @@ async def handle_message(message: Message, is_user_blacklisted=None):
                 await message.answer("Пользователь:\n"
                                      f"Имя: {user.full_name}\n"
                                      f"ID: {user.id}\n"
-                                     f"Username: {user.username}",
+                                     f"Username: {user.username}"
+                                     f"Количество платежей: {payments_number}\n"
+                                     f"Дата окончания подписки: {subscription_end_date}",
                                      reply_markup=user_status_keyboard(data))
             else:
                 await message.answer("User not found.")

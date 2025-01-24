@@ -1,5 +1,5 @@
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 from infrastructure.database.models import Payment
 from infrastructure.database.repo.base import BaseRepo
@@ -138,3 +138,17 @@ class PaymentRepo(BaseRepo):
         result = await self.session.execute(select(Payment).filter(Payment.hash == hash))
         existing_payment = result.scalar_one_or_none()
         return existing_payment is None
+
+    async def count_payments(self, user_id) -> int:
+        """
+        Counts the total number of payments in the database.
+        :return: The total count of payments.
+        """
+        try:
+            query = select(func.count(Payment.id)).filter(Payment.user_id == user_id)
+            result = await self.session.execute(query)
+            total_count = result.scalar_one()
+            return total_count
+        except SQLAlchemyError as e:
+            raise Exception(f"Error counting payments: {e}")
+
