@@ -28,8 +28,8 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
 
     data = await state.get_data()
 
-    if data['receiver']:
-        receiver = data['receiver']
+    if data.get('receiver'):
+        receiver = data.get('receiver')
     else:
         receiver = str(call.message.chat.id)
 
@@ -38,8 +38,8 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         user_id=call.message.chat.id,
         plan_id=callback_data.id,
         is_recurrent=True,
-        is_gifted=True if data['receiver'] else False,
-        gifted_by=call.message.chat.id if data['receiver'] else None,
+        is_gifted=True if data.get('receiver') else False,
+        gifted_by=call.message.chat.id if data.get('receiver') else None,
         status="pending"
     )
     payment = await repo.payments.create_payment(
