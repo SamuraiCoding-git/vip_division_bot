@@ -43,8 +43,6 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         status="pending"
     )
 
-    print(plan.usd_price)
-
     payment = await repo.payments.create_payment(
         call.message.chat.id,
         subscription.id)
@@ -110,6 +108,8 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 @subscription_router.callback_query(F.data == "pay_crypto")
 async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     data = await state.get_data()
+
+    print(data.get("usd_price"))
     usd_price = int(data.get("usd_price"))
     trust_wallet_link = f"tron:{config.misc.tron_wallet}?amount={usd_price}"
     path = generate_qr_code(trust_wallet_link)
