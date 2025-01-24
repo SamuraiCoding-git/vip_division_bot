@@ -175,11 +175,12 @@ class SubscriptionRepo(BaseRepo):
         except ValueError as e:
             raise Exception(f"Validation error: {e}")
 
-    async def toggle_all_user_subscriptions(self, user_id: int) -> List[bool]:
+    async def toggle_all_user_subscriptions(self, user_id: int) -> bool:
         """
-        Toggles the is_recurrent value for all active subscriptions of a specific user.
+        Toggles the is_recurrent value for all active subscriptions of a specific user
+        and returns a single boolean by combining all updated values with the 'and' operator.
         :param user_id: The ID of the user whose active subscriptions will be toggled.
-        :return: A list of updated is_recurrent values for the user's active subscriptions.
+        :return: True if all updated subscriptions are recurrent, False otherwise.
         """
         try:
             # Query to get all active subscriptions for the given user
@@ -193,16 +194,16 @@ class SubscriptionRepo(BaseRepo):
             if not subscriptions:
                 raise ValueError(f"No active subscriptions found for user ID {user_id}.")
 
-            updated_values = []
+            combined_is_recurrent = True
             for subscription in subscriptions:
                 # Toggle the is_recurrent value
                 subscription.is_recurrent = not subscription.is_recurrent
-                updated_values.append(subscription.is_recurrent)
+                combined_is_recurrent = combined_is_recurrent and subscription.is_recurrent
 
             # Commit the changes to the database
             await self.session.commit()
 
-            return updated_values
+            return combined_is_recurrent
         except SQLAlchemyError as e:
             await self.session.rollback()
             raise Exception(f"Error toggling is_recurrent for all active subscriptions of user ID {user_id}: {e}")
