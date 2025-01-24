@@ -134,9 +134,9 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 async def toggle_recurrence(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
     repo = await get_repo(config)
 
-    subscriptions = await repo.subscriptions.toggle_all_user_subscriptions(call.message.chat.id)
+    subscription = await repo.subscriptions.toggle_all_user_subscriptions(call.message.chat.id)
 
-    await call.answer("Успешно {} продление")
+    await call.answer(f"Успешно {'Включено' if subscription else 'Отключено'} продление")
 
     await delete_messages(bot, call.message.chat.id, state)
 
