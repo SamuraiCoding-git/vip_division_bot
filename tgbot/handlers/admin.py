@@ -17,6 +17,7 @@ from tgbot.utils.message_utils import delete_messages
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
+admin_router.callback_query(AdminFilter())
 
 from aiogram.types import Message
 
