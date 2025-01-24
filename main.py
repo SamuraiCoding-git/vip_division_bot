@@ -151,7 +151,7 @@ async def handle_request(request):
         payment = await repo.payments.update_payment(
             payment_id=int(form_data['order_num']),
             amount=int(float(form_data['sum'])),
-            currency="rub",
+            currency="RUB",
             payment_method="card_ru",
             is_successful=True
         )
