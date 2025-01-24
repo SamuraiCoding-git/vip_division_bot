@@ -11,7 +11,7 @@ from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import TariffsCallbackData
 from tgbot.keyboards.inline import my_subscription_keyboard, crypto_pay_link, \
-    instruction_keyboard, join_resources_keyboard, podcast_channel_keyboard, pay_keyboard
+    instruction_keyboard, join_resources_keyboard, pay_keyboard
 from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages
@@ -87,13 +87,16 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
     subscription_days = await repo.subscriptions.get_combined_active_subscription_days(chat_id)
 
+    subscriptions_status = await repo.subscriptions.is_reccurent(chat_id)
+
     if subscription_days > 0:
         text = config.text.payment_success_message.replace("{days_remaining}", str(subscription_days))
         sent_message = await bot.send_message(chat_id=chat_id, text=text,
                                               reply_markup=my_subscription_keyboard(state="menu",
                                                                                     is_sub=True,
                                                                                     chat_link=create_invite_link(config.misc.private_chat_id),
-                                                                                    channel_link=create_invite_link(config.misc.private_channel_id)))
+                                                                                    channel_link=create_invite_link(config.misc.private_channel_id),
+                                                                                    is_recurrent=subscriptions_status))
     else:
         text = config.text.payment_inactive_message
         sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard(state="menu"))
@@ -183,7 +186,7 @@ async def check_crypto_pay(call: CallbackQuery, state: FSMContext, bot: Bot, con
             caption=caption,
             reply_markup=join_resources_keyboard(
                 create_invite_link(config.misc.private_channel_id),
-                create_invite_link(config.misc.private_chat_id)
+                create_invite_link(config.misc.private_chat_id),
             )
         )
         VIDEO_FILE_ID = config.media.check_crypto_pay_video

@@ -196,8 +196,9 @@ def assistant_keyboard(state: str):
     ]
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def my_subscription_keyboard(state: str, is_sub=False, chat_link=None, channel_link=None):
+def my_subscription_keyboard(state: str, is_sub=False, chat_link=None, channel_link=None, is_recurrent=False):
     if is_sub:
+        text = "❌ Отменить продление" if is_recurrent else "✅ ВКЛЮЧИТЬ продление"
         buttons = [
             [
                 InlineKeyboardButton(text="🔺ВСТУПИТЬ В КАНАЛ", url=channel_link),
@@ -205,6 +206,9 @@ def my_subscription_keyboard(state: str, is_sub=False, chat_link=None, channel_l
             [
                 InlineKeyboardButton(text="🔺ВСТУПИТЬ В ЧАТ", url=chat_link),
 
+            ],
+            [
+                InlineKeyboardButton(text=text, callback_data="toggle_recurrence")
             ],
             [
                 InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()),
@@ -364,16 +368,12 @@ def crypto_pay_check_keyboard(state):
     return keyboard
 
 def join_resources_keyboard(channel_invite_link, chat_invite_link, is_recurrent):
-    text = "❌ Отменить продление" if is_recurrent else "✅ ВКЛЮЧИТЬ продление"
     buttons = [
         [
             InlineKeyboardButton(text="🔺 ВСТУПИТЬ В КАНАЛ", url=channel_invite_link)
         ],
         [
             InlineKeyboardButton(text="🔺 ВСТУПИТЬ В ЧАТ", url=chat_invite_link)
-        ],
-        [
-            InlineKeyboardButton(text=text, callback_data="toggle_recurrence")
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)

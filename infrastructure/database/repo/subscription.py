@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
 from infrastructure.database.models import Subscription
 from infrastructure.database.repo.base import BaseRepo
@@ -225,3 +225,22 @@ class SubscriptionRepo(BaseRepo):
             ]
             output.append(delimiter.join(properties))
         return "\n".join(output)
+
+    async def is_reccurent(self, user_id: int) -> bool:
+        """
+        Checks if all subscriptions for a specific user are either recurrent or not.
+        :param user_id: The ID of the user.
+        :return: True if all subscriptions for the user share the same 'is_recurrent' value, False otherwise.
+        """
+        try:
+            # Query the distinct count of 'is_recurrent' values for the given user
+            query = (
+                select(func.count(func.distinct(Subscription.is_recurrent)))
+                .filter(Subscription.user_id == user_id)
+            )
+            result = await self.session.execute(query)
+            distinct_recurrent_count = result.scalar()
+
+            return distinct_recurrent_count == 1
+        except SQLAlchemyError as e:
+            raise Exception(f"Error checking if all subscriptions for user {user_id} are recurrent or not: {e}")
