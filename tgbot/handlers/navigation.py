@@ -6,7 +6,8 @@ from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import BackCallbackData, PaginationCallbackData
 from tgbot.keyboards.inline import menu_keyboard, vip_division_keyboard, subscription_keyboard, access_payment_keyboard, \
-    story_keyboard, assistant_keyboard, access_keyboard, experts_keyboard, reviews_payment_keyboard, pagination_keyboard
+    story_keyboard, assistant_keyboard, access_keyboard, experts_keyboard, reviews_payment_keyboard, \
+    pagination_keyboard, admin_keyboard
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages
 
@@ -152,6 +153,9 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
         text = config.text.tariffs_message
         sent_message = await call.bot.send_message(chat_id=call.message.chat.id, text=text,
                                               reply_markup=subscription_keyboard("menu", plans))
+        await state.update_data(message_ids=[sent_message.message_id])
+    elif callback_data.state == "admin":
+        sent_message = await call.message.answer("Панель админа:", reply_markup=admin_keyboard())
         await state.update_data(message_ids=[sent_message.message_id])
 
 

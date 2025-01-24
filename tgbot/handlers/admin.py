@@ -191,9 +191,3 @@ async def user_inline_query(inline_query: InlineQuery):
         await inline_query.answer(results, cache_time=1)
     else:
         await inline_query.answer([], cache_time=1)
-
-@admin_router.callback_query(BackCallbackData.filter())
-async def filter_callback_query(call: CallbackQuery, callback_data: BackCallbackData, state: FSMContext, config: Config):
-    if callback_data.state == "admin":
-        sent_message = await call.message.answer("Панель админа:", reply_markup=admin_keyboard())
-    await delete_messages(call.bot, call.message.chat.id, state, [sent_message.message_id])
