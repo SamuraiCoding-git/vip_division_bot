@@ -46,7 +46,7 @@ async def handle_message(message: Message):
                 is_blocked = await repo.blacklist.is_blocked(user.id)
                 payments_number = await repo.payments.count_payments(user.id)
                 days = await repo.subscriptions.get_combined_active_subscription_days(user.id)
-                # subscription_end_date = get_readable_subscription_end_date()
+                subscription_end_date = get_readable_subscription_end_date(days)
                 data = {
                     "id": user.id,
                     "is_blocked": is_blocked
@@ -54,9 +54,9 @@ async def handle_message(message: Message):
                 await message.answer("Пользователь:\n"
                                      f"Имя: {user.full_name}\n"
                                      f"ID: {user.id}\n"
-                                     f"Username: {user.username}"
+                                     f"Username: {user.username}\n"
                                      f"Количество платежей: {payments_number}\n"
-                                     f"Дата окончания подписки: {days}",
+                                     f"Дата окончания подписки: {subscription_end_date}",
                                      reply_markup=user_status_keyboard(data))
             else:
                 await message.answer("User not found.")

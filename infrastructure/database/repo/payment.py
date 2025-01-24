@@ -145,7 +145,7 @@ class PaymentRepo(BaseRepo):
         :return: The total count of payments.
         """
         try:
-            query = select(func.count(Payment.id)).filter(Payment.user_id == user_id)
+            query = select(func.count(Payment.id)).filter(Payment.user_id == user_id, Payment.is_successful == True)
             result = await self.session.execute(query)
             total_count = result.scalar_one()
             return total_count
