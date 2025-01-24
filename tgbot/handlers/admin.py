@@ -46,7 +46,7 @@ async def handle_message(message: Message):
                 is_blocked = await repo.blacklist.is_blocked(user.id)
                 payments_number = await repo.payments.count_payments(user.id)
                 days = await repo.subscriptions.get_combined_active_subscription_days(user.id)
-                subscription_end_date = get_readable_subscription_end_date()
+                # subscription_end_date = get_readable_subscription_end_date()
                 data = {
                     "id": user.id,
                     "is_blocked": is_blocked
