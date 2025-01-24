@@ -87,7 +87,7 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
     subscription_days = await repo.subscriptions.get_combined_active_subscription_days(chat_id)
 
-    subscriptions_status = await repo.subscriptions.is_reccurent(chat_id)
+    subscriptions_status = await repo.subscriptions.is_recurrent(chat_id)
 
     if subscription_days > 0:
         text = config.text.payment_success_message.replace("{days_remaining}", str(subscription_days))
