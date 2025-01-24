@@ -52,7 +52,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
 
     if plan.original_price != plan.discounted_price:
         discount_percentage = int((1 - plan.discounted_price / plan.original_price) * 100)
-        price_text = f"<b>Стоимость:</b> <s>{plan.original_price} ₽</s> {plan.discounted_price} ₽ (скидка {discount_percentage if discount_percentage < 10 else 10}%)\n"
+        price_text = f"<b>Стоимость:</b> <s>{plan.original_price} ₽</s> {plan.discounted_price} ₽ (скидка {discount_percentage if discount_percentage > 10 else 10}%)\n"
     else:
         price_text = f"<b>Стоимость:</b> {plan.original_price} ₽\n"
 
@@ -131,7 +131,7 @@ async def pay_crypto_handler(call: CallbackQuery, state: FSMContext, bot: Bot, c
 
 
 @subscription_router.callback_query(F.data == "toggle_recurrence")
-async def toggle_recurrence(call: CallbackQuery, state: FSMContext, bot: Bot, config: Config):
+async def toggle_recurrence(call: CallbackQuery, config: Config):
     repo = await get_repo(config)
 
     subscription = await repo.subscriptions.toggle_all_user_subscriptions(call.message.chat.id)
