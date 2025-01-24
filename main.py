@@ -91,8 +91,9 @@ def unban_user_from_chat_or_channel(chat_id, user_id):
         if response.ok:
             print(f"User {user_id} unbanned successfully from chat {chat_id}.")
         else:
-            print(True)
-            print(f"Failed to unban user {user_id} from chat {chat_id}: {response.text}")
+            error = f"Failed to unban user {user_id} from chat {chat_id}: {response.text}"
+            if 'administrator' in error:
+                return True
         return response.ok
     except Exception as e:
         print(f"Error unbanning user {user_id} from chat {chat_id}: {e}")
