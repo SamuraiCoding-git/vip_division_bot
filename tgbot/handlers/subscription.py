@@ -86,21 +86,10 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
     message_ids = []
     repo = await get_repo(config)
 
-    order = await repo.orders.get_latest_paid_order_by_user(chat_id)
+    subscription_days = await repo.subscriptions.get_combined_active_subscription_days(chat_id)
 
-    if order:
-        plan = await repo.plans.select_plan(order.plan_id)
-        try:
-            duration_days = plan.duration
-            end_date = order.start_date + timedelta(days=duration_days)
-            days_remaining = max((end_date - datetime.utcnow()).days, 0)
-        except ValueError:
-            days_remaining = 0
-    else:
-        days_remaining = 0
-
-    if days_remaining > 0:
-        text = config.text.payment_success_message.replace("{days_remaining}", str(days_remaining))
+    if subscription_days > 0:
+        text = config.text.payment_success_message.replace("{days_remaining}", str(subscription_days))
         sent_message = await bot.send_message(chat_id=chat_id, text=text,
                                               reply_markup=my_subscription_keyboard(state="menu",
                                                                                     is_sub=True,

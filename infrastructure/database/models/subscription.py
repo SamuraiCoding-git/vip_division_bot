@@ -17,11 +17,10 @@ class Subscription(Base, TableNameMixin):
     end_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     is_recurrent: Mapped[bool] = mapped_column(Boolean, default=False)
     is_gifted: Mapped[bool] = mapped_column(Boolean, default=False)
-    gifted_by: Mapped[Optional[int]] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=False)
+    gifted_by: Mapped[Optional[int]] = mapped_column(BIGINT, ForeignKey("users.id"), nullable=False, default=None)
 
     # Correct the foreign_keys to use the actual column objects
     user: Mapped["User"] = relationship("User", back_populates="subscriptions", foreign_keys=[user_id])  # Use the column reference
     plan: Mapped["Plan"] = relationship("Plan")
     payments: Mapped[list["Payment"]] = relationship("Payment", back_populates="subscription")
     gifted_by_user: Mapped[Optional["User"]] = relationship("User", foreign_keys=[gifted_by])  # Use the column reference specify the foreign key here
-

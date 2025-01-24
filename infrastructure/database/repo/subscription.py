@@ -129,3 +129,27 @@ class SubscriptionRepo(BaseRepo):
         except SQLAlchemyError as e:
             await self.session.rollback()
             raise Exception(f"Error deleting subscription with ID {subscription_id}: {e}")
+
+    async def get_combined_active_subscription_days(self, user_id: int) -> Optional[int]:
+        """
+        Retrieves the combined number of days remaining for all active subscriptions of a user.
+        :param user_id: The ID of the user.
+        :return: The total days of active subscriptions, or None if no active subscriptions exist.
+        """
+        try:
+            query = select(Subscription).filter(Subscription.user_id == user_id, Subscription.status == "active")
+            result = await self.session.execute(query)
+            active_subscriptions = result.scalars().all()
+
+            if not active_subscriptions:
+                return None
+
+            total_days = 0
+            for subscription in active_subscriptions:
+                if subscription.end_date and subscription.start_date:
+                    days_remaining = (subscription.end_date - subscription.start_date).days
+                    total_days += days_remaining
+
+            return total_days
+        except SQLAlchemyError as e:
+            raise Exception(f"Error calculating combined active subscription days for user {user_id}: {e}")
