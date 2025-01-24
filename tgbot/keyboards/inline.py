@@ -363,13 +363,17 @@ def crypto_pay_check_keyboard(state):
     ])
     return keyboard
 
-def join_resources_keyboard(channel_invite_link, chat_invite_link):
+def join_resources_keyboard(channel_invite_link, chat_invite_link, is_recurrent):
+    text = "❌ Отменить продление" if is_recurrent else "✅ ВКЛЮЧИТЬ продление"
     buttons = [
         [
             InlineKeyboardButton(text="🔺 ВСТУПИТЬ В КАНАЛ", url=channel_invite_link)
         ],
         [
             InlineKeyboardButton(text="🔺 ВСТУПИТЬ В ЧАТ", url=chat_invite_link)
+        ],
+        [
+            InlineKeyboardButton(text=text, callback_data="toggle_recurrence")
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)

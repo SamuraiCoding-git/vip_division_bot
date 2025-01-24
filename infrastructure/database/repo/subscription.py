@@ -39,7 +39,8 @@ class SubscriptionRepo(BaseRepo):
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         is_recurrent: bool = False,
-        is_gifted: bool = False
+        is_gifted: bool = False,
+        gifted_by: Optional[int] = None,
     ) -> "Subscription":
         """
         Creates a new subscription with mandatory and optional parameters.
@@ -61,7 +62,8 @@ class SubscriptionRepo(BaseRepo):
                 start_date=start_date,
                 end_date=end_date,
                 is_recurrent=is_recurrent,
-                is_gifted=is_gifted
+                is_gifted=is_gifted,
+                gifted_by=gifted_by
             )
             self.session.add(subscription)
             await self.session.commit()
@@ -78,7 +80,7 @@ class SubscriptionRepo(BaseRepo):
         end_date: Optional[datetime] = None,
         is_recurrent: Optional[bool] = None,
         is_gifted: Optional[bool] = None
-    ) -> "Subscription":
+    ) -> Subscription:
         """
         Updates an existing subscription with optional parameters.
         :param subscription_id: ID of the subscription to update.
@@ -151,3 +153,52 @@ class SubscriptionRepo(BaseRepo):
             return total_days
         except SQLAlchemyError as e:
             raise Exception(f"Error calculating combined active subscription days for user {user_id}: {e}")
+
+    async def toggle_is_recurrent(self, subscription_id: int) -> bool:
+        """
+        Toggles the is_recurrent value of a subscription.
+        :param subscription_id: The ID of the subscription.
+        :return: The updated is_recurrent value.
+        """
+        try:
+            subscription = await self.session.get(Subscription, subscription_id)
+            if not subscription:
+                raise ValueError(f"Subscription with ID {subscription_id} not found.")
+
+            subscription.is_recurrent = not subscription.is_recurrent
+            await self.session.commit()
+
+            return subscription.is_recurrent
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise Exception(f"Error toggling is_recurrent for subscription ID {subscription_id}: {e}")
+        except ValueError as e:
+            raise Exception(f"Validation error: {e}")
+
+    async def toggle_all_user_subscriptions(self, user_id: int) -> List[bool]:
+        """
+        Toggles the is_recurrent value for all subscriptions of a specific user.
+        :param user_id: The ID of the user whose subscriptions will be toggled.
+        :return: A list of updated is_recurrent values for the user's subscriptions.
+        """
+        try:
+            query = select(Subscription).filter(Subscription.user_id == user_id)
+            result = await self.session.execute(query)
+            subscriptions = result.scalars().all()
+
+            if not subscriptions:
+                raise ValueError(f"No subscriptions found for user ID {user_id}.")
+
+            updated_values = []
+            for subscription in subscriptions:
+                subscription.is_recurrent = not subscription.is_recurrent
+                updated_values.append(subscription.is_recurrent)
+
+            await self.session.commit()
+
+            return updated_values
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise Exception(f"Error toggling is_recurrent for all subscriptions of user ID {user_id}: {e}")
+        except ValueError as e:
+            raise Exception(f"Validation error: {e}")
