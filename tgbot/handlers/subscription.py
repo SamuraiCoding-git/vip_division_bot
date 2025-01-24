@@ -73,7 +73,6 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
 
     await delete_messages(bot, call.message.chat.id, state, [sent_message.message_id])
-    await state.clear()
 
 
 @subscription_router.message(F.text == '/subscription')
