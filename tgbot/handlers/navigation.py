@@ -8,6 +8,7 @@ from tgbot.keyboards.callback_data import BackCallbackData, PaginationCallbackDa
 from tgbot.keyboards.inline import menu_keyboard, vip_division_keyboard, subscription_keyboard, access_payment_keyboard, \
     story_keyboard, assistant_keyboard, access_keyboard, experts_keyboard, reviews_payment_keyboard, \
     pagination_keyboard, admin_keyboard
+from tgbot.misc.states import SubscriptionGift
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages
 
@@ -158,6 +159,35 @@ async def filter_callback_query(call: CallbackQuery, callback_data: BackCallback
         sent_message = await call.message.answer("Панель админа:", reply_markup=admin_keyboard())
         await state.update_data(message_ids=[sent_message.message_id])
 
+
+@navigation_router.callback_query(F.data == "subscription_gift")
+async def subscription_gift(call: CallbackQuery, state: FSMContext):
+    await delete_messages(call.bot, call.message.chat.id, state)
+    await call.message.answer("Введите User ID получателя: ")
+    await state.set_state(SubscriptionGift.receiver)
+
+
+@navigation_router.message(SubscriptionGift.receiver)
+async def subscription_receiver(message: Message, state: FSMContext, config: Config):
+    await message.delete()
+
+    message_ids = []
+
+    repo = await get_repo(config)
+    plans = await repo.plans.get_all_plans()
+
+    text = config.text.tariffs_message
+    sent_message = await message.bot.send_message(chat_id=message.from_user.id,
+                                                  text=text,
+                                                  reply_markup=subscription_keyboard("menu", plans))
+
+    message_ids.append(sent_message.message_id)
+
+    await state.update_data(receiver=message.from_user.id)
+
+    await state.clear()
+
+    await delete_messages(message.bot, message.from_user.id, state, message_ids)
 
 @navigation_router.callback_query(PaginationCallbackData.filter())
 async def handle_pagination(call: CallbackQuery, callback_data: PaginationCallbackData, config: Config):

@@ -59,6 +59,12 @@ def menu_keyboard():
         [
             InlineKeyboardButton(text="✔️ ТАРИФЫ", callback_data="tariffs"),
         ],
+        [
+            InlineKeyboardButton(
+                text="🎁 ПОДАРИТЬ ПОДПИСКУ",
+                callback_data="subscription_gift"
+            )
+        ],
         # [
         #     InlineKeyboardButton(text="🎮 ИГРА", callback_data="game"),
         # ],

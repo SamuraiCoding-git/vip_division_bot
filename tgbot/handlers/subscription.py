@@ -3,16 +3,15 @@ from datetime import timedelta, datetime
 
 from aiogram import F, Router, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile, Message
 
-from infrastructure.database.models import Payment
 from main import create_invite_link
 from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import TariffsCallbackData
 from tgbot.keyboards.inline import my_subscription_keyboard, crypto_pay_link, \
     instruction_keyboard, join_resources_keyboard, pay_keyboard
-from tgbot.misc.states import UsdtTransaction
+from tgbot.misc.states import UsdtTransaction, SubscriptionGift
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages
 from tgbot.utils.payment_utils import generate_qr_code, generate_payment_link
@@ -26,24 +25,21 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 @subscription_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     repo = await get_repo(config)
-    # user = await repo.users.select_user(call.message.chat.id)
-    # reference_date = datetime(2025, 1, 10)
 
-    # data = await state.get_data()
-    # payments_opened = data.get('payments_opened')
-    #
-    # if payments_opened != 'True' and user.created_at > reference_date:
-    #     text = ("Приватный канал закрыт.\n\n"
-    #             "Но можешь насладиться подкастом")
-    #     photo = "AgACAgIAAxkBAAEBGrpnf455RP6B5uNFzd3G5oqw1YuZTgACLuoxGzT-AAFIhutJCNi8w8IBAAMCAAN5AAM2BA"
-    #     await call.message.answer_photo(photo=photo, caption=text, reply_markup=podcast_channel_keyboard())
-    #     return
+    data = await state.get_data()
+
+    if data['receiver']:
+        receiver = data['receiver']
+    else:
+        receiver = str(call.message.chat.id)
+
     plan = await repo.plans.select_plan(callback_data.id)
     subscription = await repo.subscriptions.create_subscription(
         user_id=call.message.chat.id,
         plan_id=callback_data.id,
         is_recurrent=True,
-        is_gifted=False,
+        is_gifted=True if data['receiver'] else False,
+        gifted_by=call.message.chat.id if data['receiver'] else None,
         status="pending"
     )
     payment = await repo.payments.create_payment(
@@ -71,11 +67,12 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
         }
     ]
 
-    link = generate_payment_link(str(call.message.chat.id), payment.id, product, config.payment.token, config.misc.payment_form_url)
+    link = generate_payment_link(receiver, payment.id, product, config.payment.token, config.misc.payment_form_url)
 
     sent_message = await call.message.answer(text, reply_markup=pay_keyboard(link, "tariffs"))
 
     await delete_messages(bot, call.message.chat.id, state, [sent_message.message_id])
+    await state.clear()
 
 
 @subscription_router.message(F.text == '/subscription')

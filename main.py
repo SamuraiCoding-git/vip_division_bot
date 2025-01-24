@@ -64,6 +64,22 @@ def send_telegram_message(method, chat_id, media_id, caption, buttons=None):
         print(f"Error sending message: {e}")
         return False
 
+def send_telegram_text_message(chat_id, message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+
+    payload = {
+        "chat_id": chat_id,
+        "text": message
+    }
+
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
+
 def create_invite_link(target_chat_id):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
@@ -155,8 +171,6 @@ async def handle_request(request):
             payment_method="card_ru",
             is_successful=True
         )
-        print("Payment: ", payment)
-        print("Subscription: ", subscription)
 
         photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)
         if not photo_id:
@@ -168,7 +182,18 @@ async def handle_request(request):
         if not channel_invite_link or not chat_invite_link:
             return web.json_response({'error': 'Failed to create invite links'}, status=500)
 
-        caption_photo = "✅ Подписка на канал успешно оформлена!\nПерeходи по кнопкам ниже:"
+        if subscription.gifted_by:
+            gifter = await repo.users.select_user(int(subscription.gifted_by))
+
+
+            caption_photo = (f"✅ Подписка на канал подарена {gifter.full_name}!\n"
+                             "Перeходи по кнопкам ниже:")
+            gifter_text = "Подписка успешно подарена!"
+            await send_telegram_text_message(chat_id,
+                                             gifter_text)
+        else:
+            caption_photo = ("✅ Подписка на канал успешно оформлена!\n"
+                             "Перeходи по кнопкам ниже:")
         buttons_photo = [
             [{"text": "🔺 ВСТУПИТЬ В КАНАЛ", "url": channel_invite_link}],
             [{"text": "🔺 ВСТУПИТЬ В ЧАТ", "url": chat_invite_link}]
