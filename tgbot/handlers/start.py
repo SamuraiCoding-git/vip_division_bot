@@ -41,7 +41,7 @@ async def user_deeplink(message: Message, command: CommandObject, config: Config
         await message.answer_photo(photo, caption=text, reply_markup=keyboard)
         return
     elif command.args == "suggestion":
-        await message.answer("Напишите вопрос, и мы ответим в ближайшее время.")
+        await message.answer("Напишите вопрос")
         await state.set_state(Suggestion.message)
         return
     text = config.text.mailing_consent_message
