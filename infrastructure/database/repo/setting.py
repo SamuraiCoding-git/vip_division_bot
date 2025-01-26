@@ -8,13 +8,13 @@ from infrastructure.database.repo.base import BaseRepo
 
 
 class SettingRepo(BaseRepo):
-    async def get_setting(self) -> Optional[Setting]:
+    async def get_setting(self, title) -> Optional[Setting]:
         """
         Retrieves the Setting object. Assumes there is only one row in the table.
         :return: Setting object, or None if not found.
         """
         try:
-            query = select(Setting).limit(1)
+            query = select(Setting).filter(Setting.title == title)
             result = await self.session.execute(query)
             return result.scalar_one_or_none()
         except SQLAlchemyError as e:

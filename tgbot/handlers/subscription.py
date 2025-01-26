@@ -10,8 +10,8 @@ from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import TariffsCallbackData
 from tgbot.keyboards.inline import my_subscription_keyboard, crypto_pay_link, \
-    instruction_keyboard, join_resources_keyboard, pay_keyboard
-from tgbot.misc.states import UsdtTransaction, SubscriptionGift
+    instruction_keyboard, join_resources_keyboard, pay_keyboard, podcast_channel_keyboard
+from tgbot.misc.states import UsdtTransaction
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages
 from tgbot.utils.payment_utils import generate_qr_code, generate_payment_link
@@ -26,6 +26,16 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     repo = await get_repo(config)
 
+    setting = await repo.settings.get_setting("Оплаты включены")
+    if not setting.value:
+        photo = "AgACAgIAAxkBAAEBP7xnlkIuiQpw-aYs8nqINtD2LKmUYQAC4u0xG5m5sUjpbe1JhQadZwEAAwIAA3kAAzYE"
+        caption = ("Приватный канал закрыт.\n\n"
+                   "Но можешь насладиться подкастом")
+        sent_message = await call.message.answer_photo(photo=photo,
+                                                       caption=caption,
+                                                       reply_markup=podcast_channel_keyboard())
+        await delete_messages(call.bot, call.message.chat.id, state, [sent_message.message_id])
+        return
     data = await state.get_data()
 
     if data.get('receiver'):
