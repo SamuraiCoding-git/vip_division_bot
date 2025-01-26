@@ -8,7 +8,7 @@ from infrastructure.database.repo.base import BaseRepo
 
 
 class SettingRepo(BaseRepo):
-    async def get_setting(self, title) -> Optional[Setting]:
+    async def get_setting(self, title="Оплаты включены") -> Optional[Setting]:
         """
         Retrieves the Setting object. Assumes there is only one row in the table.
         :return: Setting object, or None if not found.
@@ -62,7 +62,7 @@ class SettingRepo(BaseRepo):
         :return: Dictionary with ids as keys and their properties as nested dictionaries.
         """
         try:
-            setting = await self.get_setting("Оплаты включены")
+            setting = await self.get_setting()
             if not setting:
                 return {}
 
