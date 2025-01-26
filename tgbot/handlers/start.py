@@ -43,6 +43,7 @@ async def user_deeplink(message: Message, command: CommandObject, config: Config
     elif command.args == "suggestion":
         await message.answer("Напишите вопрос, и мы ответим в ближайшее время.")
         await state.set_state(Suggestion.message)
+        return
     text = config.text.mailing_consent_message
     await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
 
