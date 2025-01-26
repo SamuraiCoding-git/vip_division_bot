@@ -6,3 +6,6 @@ class UsdtTransaction(StatesGroup):
 
 class SubscriptionGift(StatesGroup):
     receiver = State()
+
+class Suggestion(StatesGroup):
+    message = State()

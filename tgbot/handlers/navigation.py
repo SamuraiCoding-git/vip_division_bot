@@ -8,7 +8,7 @@ from tgbot.keyboards.callback_data import BackCallbackData, PaginationCallbackDa
 from tgbot.keyboards.inline import menu_keyboard, vip_division_keyboard, subscription_keyboard, access_payment_keyboard, \
     story_keyboard, assistant_keyboard, access_keyboard, experts_keyboard, reviews_payment_keyboard, \
     pagination_keyboard, admin_keyboard
-from tgbot.misc.states import SubscriptionGift
+from tgbot.misc.states import SubscriptionGift, Suggestion
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages
 
@@ -58,6 +58,16 @@ async def how_chat_works(call: CallbackQuery, state: FSMContext, config: Config)
     message_ids.append(sent.message_id)
 
     await delete_messages(call.bot, call.message.chat.id, state, message_ids)
+
+
+@navigation_router.message(Suggestion.message)
+async def suggestion(message: Message, state: FSMContext, config: Config):
+    repo = await get_repo(config)
+    admins = await repo.admins.get_all_admins()
+    for admin in admins:
+        await message.forward(chat_id=admin.id)
+    await message.answer("Вопрос отправлен")
+    await state.clear()
 
 
 @navigation_router.message(F.text == "/biography")
