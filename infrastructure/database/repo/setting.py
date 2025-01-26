@@ -62,7 +62,7 @@ class SettingRepo(BaseRepo):
         :return: Dictionary with ids as keys and their properties as nested dictionaries.
         """
         try:
-            setting = await self.get_setting()
+            setting = await self.get_setting("Оплаты включены")
             if not setting:
                 return {}
 
