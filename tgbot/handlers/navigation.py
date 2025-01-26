@@ -66,7 +66,7 @@ async def suggestion(message: Message, state: FSMContext, config: Config):
     admins = await repo.admins.get_all_admins()
     for admin in admins:
         await message.forward(chat_id=admin.id)
-    await message.answer("Вопрос отправлен09")
+    await message.answer("Вопрос отправлен")
     await state.clear()
 
 
