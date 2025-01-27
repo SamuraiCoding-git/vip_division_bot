@@ -26,7 +26,9 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     repo = await get_repo(config)
     setting = await repo.settings.get_setting("Оплаты включены")
-    if not setting.value:
+    data = await state.get_data()
+    payments_opened = data.get("payments_opened")
+    if not setting.value or not payments_opened:
         photo = "AgACAgIAAxkBAAEBP7xnlkIuiQpw-aYs8nqINtD2LKmUYQAC4u0xG5m5sUjpbe1JhQadZwEAAwIAA3kAAzYE"
         caption = ("Приватный канал закрыт.\n\n"
                    "Но можешь насладиться подкастом")
@@ -35,7 +37,6 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
                                                        reply_markup=podcast_channel_keyboard())
         await delete_messages(call.bot, call.message.chat.id, state, [sent_message.message_id])
         return
-    data = await state.get_data()
 
     if data.get('receiver'):
         receiver = data.get('receiver')
