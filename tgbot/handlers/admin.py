@@ -1,7 +1,9 @@
-from datetime import timedelta, datetime
+import re
+from datetime import datetime
 
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
+from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +12,7 @@ from main import config
 from tgbot.config import Config, load_config
 from tgbot.filters.admin import AdminFilter
 from tgbot.keyboards.callback_data import AdminsListCallbackData, DeleteAdminCallbackData, \
-    SettingsCallbackData, BlacklistCallbackData
+    SettingsCallbackData, BlacklistCallbackData, AddDaysCallbackData
 from tgbot.keyboards.inline import admin_keyboard, admins_list_keyboard, admin_delete_keyboard, settings_keyboard, \
     user_status_keyboard
 from tgbot.misc.admin_states import AdminStates
@@ -66,6 +68,45 @@ async def handle_message(message: Message):
             await message.answer("Failed to process the message. Please try again.")
             print(f"Error handling message: {e}")
 
+
+@admin_router.callback_query(AddDaysCallbackData.filter())
+async def add_days(call: CallbackQuery, state: FSMContext, callback_data: AddDaysCallbackData):
+    await state.set_state(AdminStates.add_days)
+    await state.update_data(add_days_user_id=callback_data.id)
+    await call.message.answer("Отправь количество дней продления или дату:\n"
+                              "Формат:\n"
+                              "+10 (Чтобы продлить на 10 дней)\n"
+                              "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)")
+
+@admin_router.message(AdminStates.add_days)
+async def add_days_state(message: Message, state: FSMContext, callback_data: AddDaysCallbackData):
+    data = await state.get_data()
+    repo = await get_repo(config)
+
+    user_id = int(data.get("add_days_user_id"))
+    input_data = message.text.strip()
+
+    try:
+        if input_data.startswith("+") and input_data[1:].isdigit():
+            days = int(input_data[1:])
+            if days <= 0:
+                raise ValueError("Количество дней должно быть больше 0.")
+            await repo.subscriptions.extend_subscription(user_id, f"+{days}")
+            await message.answer(f"Добавлено {days} дней пользователю с ID {user_id}.")
+
+        elif re.match(r"^\d{4}-\d{2}-\d{2}$", input_data):
+            date = datetime.strptime(input_data, "%Y-%m-%d")
+            if date <= datetime.now():
+                raise ValueError("Дата должна быть в будущем.")
+            await repo.subscriptions.extend_subscription(user_id, date.strftime("%Y-%m-%d"))
+            await message.answer(
+                f"Установлена новая дата окончания подписки: {date.date()} для пользователя с ID {user_id}.")
+
+        else:
+            raise ValueError("Неверный формат. Введите '+N' для добавления дней или 'YYYY-MM-DD' для установки даты.")
+
+    except ValueError as e:
+        await message.answer(f"Ошибка: {e}")
 
 @admin_router.callback_query(BlacklistCallbackData.filter())
 async def blacklist_data(call: CallbackQuery, callback_data: BlacklistCallbackData, config: Config):

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
@@ -258,6 +258,54 @@ class SubscriptionRepo(BaseRepo):
             raise Exception(
                 f"Error checking if all active subscriptions for user {user_id} are recurrent or not: {e}")
 
+    async def extend_subscription(
+        self,
+        user_id: int,
+        extension: str
+    ) -> Optional[Subscription]:
+        """
+        Extends the last active subscription by either adding days (e.g., "+10") or setting a new end date ("YYYY-MM-DD").
+        :param user_id: The ID of the user whose subscription will be updated.
+        :param extension: Either a string representing days to add (e.g., "+10") or a specific date ("YYYY-MM-DD").
+        :return: The updated Subscription object, or None if no active subscription is found.
+        """
+        try:
+            # Determine whether `extension` is days or a specific date
+            if extension.startswith("+"):  # Adding days (e.g., "+10")
+                days = int(extension[1:])
+                until_date = None
+            else:  # Specific date (e.g., "2025-01-31")
+                until_date = datetime.strptime(extension, "%Y-%m-%d")
+                days = None
 
+            # Query to get the last active subscription sorted by start_date
+            query = (
+                select(Subscription)
+                .filter(
+                    Subscription.user_id == user_id,
+                    Subscription.status == "active"
+                )
+                .order_by(Subscription.start_date.desc())
+            )
+            result = await self.session.execute(query)
+            last_subscription = result.scalars().first()
 
+            if not last_subscription:
+                return None  # No active subscription found
 
+            # Update the end date
+            if days is not None:
+                last_subscription.end_date += timedelta(days=days)
+            elif until_date is not None:
+                if until_date <= last_subscription.end_date:
+                    raise ValueError("New end date must be later than the current end date.")
+                last_subscription.end_date = until_date
+
+            # Commit the changes
+            await self.session.commit()
+            return last_subscription
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise Exception(f"Error extending subscription for user {user_id} with extension {extension}: {e}")
+        except ValueError as e:
+            raise Exception(f"Invalid extension value: {e}")

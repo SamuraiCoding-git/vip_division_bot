@@ -2,14 +2,15 @@ import asyncio
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InputMediaPhoto
+from aiogram.types import CallbackQuery, InputMediaPhoto, InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 from infrastructure.database.repo.requests import RequestsRepo
 from infrastructure.database.setup import create_session_pool
 from tgbot.config import Config
 from tgbot.keyboards.inline import offer_consent_keyboard, get_guide_keyboard, communication_base_keyboard, \
     pagination_keyboard, read_keyboard, guides_keyboard, ready_to_change_keyboard, community_keyboard, \
-    generate_keyboard
+    generate_payment_keyboard
+from tgbot.misc.states import Suggestion
 
 
 async def delete_messages(bot: Bot, chat_id: int, state: FSMContext, new_message_ids: list[int] = None):
@@ -202,7 +203,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
         InputMediaPhoto(media=config.media.pagination_photos[1])
     ]
 
-    await call.message.answer_media_group(media_group, reply_markup=generate_keyboard("Хочу также ✔️"))
+    await call.message.answer_media_group(media_group, reply_markup=generate_payment_keyboard("Хочу также ✔️"))
     await asyncio.sleep(86400)
 
     session_pool = await create_session_pool(config.db)
@@ -224,7 +225,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
             "С нами уже 1400 счастливчиков, которые уже на шаг впереди тебя, а ты что? Обратно на диван, братик? / <b>жирный шрифт</b>\n\n"
             "Решать тебе"
         )
-        await call.message.answer_photo(photo, caption=text, reply_markup=generate_keyboard("🤝Я с вами"))
+        await call.message.answer_photo(photo, caption=text, reply_markup=generate_payment_keyboard("🤝Я с вами"))
 
         photo_1 = config.media.pagination_photos[2]
 
@@ -237,7 +238,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
             text = (
                 "⁉️ Не пора бы и тебе, уже сделать главную трансформацию в своей жизни?"
             )
-            await call.message.answer_photo(photo, text, reply_markup=generate_keyboard("Ты прав, я попробую 👍🏽"))
+            await call.message.answer_photo(photo, text, reply_markup=generate_payment_keyboard("Ты прав, я попробую 👍🏽"))
 
         await asyncio.sleep(21600)
         user = await repo.users.select_user(call.message.chat.id)
@@ -255,7 +256,7 @@ async def handle_seduction_deeplink(call: CallbackQuery, state: FSMContext, conf
                 "1 месяц и ты многое для себя поймешь.\n\n"
                 "Твой выбор?"
             )
-            await call.message.answer(text, reply_markup=generate_keyboard("Выбрать тариф 📊"))
+            await call.message.answer(text, reply_markup=generate_payment_keyboard("Выбрать тариф 📊"))
 
 
 async def send_consent_request(call: CallbackQuery, state: FSMContext):
@@ -272,3 +273,40 @@ async def send_consent_request(call: CallbackQuery, state: FSMContext):
         reply_markup=offer_consent_keyboard(False)
     )
     await state.update_data(message_ids=[sent_message.message_id])
+
+
+async def send_ded_gs_message(message: Message):
+    photo = "AgACAgIAAxkBAAEBJHBnh3_9jUk_UjRzcdmW0oEyCmwazAAC8-MxG8VuQUgclQED-Tf_RgEAAwIAA3kAAzYE"
+    text = (
+        "Успей попасть на ведение к главному коучу за 1390\n\n"
+        "В приватном канале Рома ДЕД (главный коуч) устраивает 7-ми дневный тренинг по полному раскрытию потенциала.\n\n"
+        "Через него уже прошли 1000-чи учеников, и их результаты поражают.\n\n"
+        "Слушай гс от Романа с вводными на неделю и присоединяйся к тренингу."
+    )
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Слушать ГС от Деда 🔥", callback_data="ded_gs")
+            ]
+        ]
+    )
+    await message.answer_photo(photo, caption=text, reply_markup=keyboard)
+
+async def start_suggestion(message: Message, state: FSMContext):
+    await message.answer("Напишите вопрос")
+    await state.set_state(Suggestion.message)
+
+async def default_action(message: Message, deeplink_arg: str, config: Config):
+    text = config.text.mailing_consent_message
+    await message.answer(
+        text,
+        reply_markup=offer_consent_keyboard(deeplink=deeplink_arg),
+        disable_web_page_preview=True
+    )
+
+async def activate_payment(message: Message, state: FSMContext):
+    await state.update_data(payments_opened='True')
+    await message.answer(
+        "Платежная ссылка активирована!",
+        reply_markup=generate_payment_keyboard("📊Выбрать тариф")
+    )

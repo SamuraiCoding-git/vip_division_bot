@@ -36,3 +36,6 @@ class SettingsCallbackData(CallbackData, prefix="settings"):
 class BlacklistCallbackData(CallbackData, prefix="blacklist"):
     id: int
     is_blocked: bool
+
+class AddDaysCallbackData(CallbackData, prefix="add_days"):
+    id: int

@@ -6,10 +6,11 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import OfferConsentCallbackData
-from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, generate_keyboard
+from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, generate_payment_keyboard
 from tgbot.misc.states import Suggestion
 from tgbot.utils.db_utils import get_repo
-from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request
+from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, start_suggestion, \
+    send_ded_gs_message, default_action, activate_payment
 
 start_router = Router()
 
@@ -19,34 +20,24 @@ start_router.callback_query.filter(IsPrivateFilter())
 
 @start_router.message(CommandStart(deep_link=True))
 async def user_deeplink(message: Message, command: CommandObject, config: Config, state: FSMContext):
-    if command.args == "9ae0a8989a14fb1263b255b24d8becf2":
-        await state.update_data(payments_opened='True')
-        await message.answer("Платежная ссылка активирована!", reply_markup=generate_keyboard("📊Выбрать тариф"))
-        return
-    elif command.args == 'ded_gs':
-        photo = "AgACAgIAAxkBAAEBJHBnh3_9jUk_UjRzcdmW0oEyCmwazAAC8-MxG8VuQUgclQED-Tf_RgEAAwIAA3kAAzYE"
+    deeplink_actions = {
+        "9ae0a8989a14fb1263b255b24d8becf2": {
+            "action": lambda: activate_payment(message, state),
+        },
+        "ded_gs": {
+            "action": lambda: send_ded_gs_message(message),
+        },
+        "suggestion": {
+            "action": lambda: start_suggestion(message, state),
+        }
+    }
 
-        text = (
-            "Успей попасть на ведение к главному коучу за 1390\n\n"
-            "В приватном канале Рома ДЕД (главный коуч) устраивает 7-ми дневный тренинг по полному раскрытию потенциала.\n\n"
-            "Через него уже прошли 1000-чи учеников, и их результаты поражают.\n\n"
-            "Слушай гс от Романа с вводными на неделю и присоединяйся к тренингу."
-        )
+    action_data = deeplink_actions.get(command.args)
 
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Слушать ГС от Деда 🔥", callback_data="ded_gs")
-            ]
-        ])
-        await message.answer_photo(photo, caption=text, reply_markup=keyboard)
-        return
-    elif command.args == "suggestion":
-        await message.answer("Напишите вопрос")
-        await state.set_state(Suggestion.message)
-        return
-    text = config.text.mailing_consent_message
-    await message.answer(text, reply_markup=offer_consent_keyboard(deeplink=command.args), disable_web_page_preview=True)
-
+    if action_data:
+        await action_data["action"]()
+    else:
+        await default_action(message, command.args, config)
 
 @start_router.message(CommandStart())
 async def user_start(message: Message, config: Config, state: FSMContext):

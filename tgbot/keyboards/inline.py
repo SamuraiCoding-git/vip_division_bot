@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from infrastructure.database.models import Admin
 from tgbot.keyboards.callback_data import OfferConsentCallbackData, BackCallbackData, TariffsCallbackData, \
     GuidesCallbackData, PaginationCallbackData, ReadingCallbackData, AdminsListCallbackData, DeleteAdminCallbackData, \
-    SettingsCallbackData, BlacklistCallbackData
+    SettingsCallbackData, BlacklistCallbackData, AddDaysCallbackData
 
 
 def offer_consent_keyboard(extended=True, deeplink=None):
@@ -422,7 +422,7 @@ def community_keyboard():
     return keyboard
 
 
-def generate_keyboard(button_text):
+def generate_payment_keyboard(button_text):
     buttons = [
         InlineKeyboardButton(text=button_text, callback_data="tariffs")
     ]
@@ -461,6 +461,10 @@ def user_status_keyboard(data):
                                 id=data['id'],
                                 is_blocked=data['is_blocked']).pack()
             )
+        ],
+        [
+            InlineKeyboardButton(text="Продлить подписку",
+                                 callback_data=AddDaysCallbackData(id=data['id']).pack())
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)

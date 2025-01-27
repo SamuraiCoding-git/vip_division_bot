@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 
 from aiogram import F, Router, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import CallbackQuery, FSInputFile
 
 from main import create_invite_link
 from tgbot.config import Config
@@ -25,7 +25,6 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 @subscription_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     repo = await get_repo(config)
-
     setting = await repo.settings.get_setting("Оплаты включены")
     if not setting.value:
         photo = "AgACAgIAAxkBAAEBP7xnlkIuiQpw-aYs8nqINtD2LKmUYQAC4u0xG5m5sUjpbe1JhQadZwEAAwIAA3kAAzYE"

@@ -284,6 +284,7 @@ class Miscellaneous:
     payment_form_url: str
     tron_wallet: str
     sys: str
+    secret_key: str
     other_params: Optional[str] = None
 
     @staticmethod
@@ -294,6 +295,7 @@ class Miscellaneous:
             payment_form_url=env.str("PAYMENT_FORM_URL"),
             tron_wallet=env.str("TRON_WALLET"),
             sys=env.str("SYS"),
+            secret_key=env.str("SECRET_KEY"),
             other_params=env.str("OTHER_PARAMS", default=None),
         )
 
