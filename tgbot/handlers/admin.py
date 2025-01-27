@@ -3,7 +3,6 @@ from datetime import datetime
 
 from aiogram import Router, F, Bot
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.exc import IntegrityError
@@ -80,8 +79,8 @@ async def add_days(call: CallbackQuery, state: FSMContext, callback_data: AddDay
     await state.update_data(add_days_user_id=callback_data.id)
     await call.message.answer("Отправь количество дней продления или дату:\n\n"
                               "<b>Формат:</b>\n"
-                              "<q>+10 (Чтобы продлить на 10 дней)\n"
-                              "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)</q>")
+                              "<i>+10 (Чтобы продлить на 10 дней)\n"
+                              "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)</i>")
 
 @admin_router.message(AdminStates.add_days)
 async def add_days_state(message: Message, state: FSMContext):
