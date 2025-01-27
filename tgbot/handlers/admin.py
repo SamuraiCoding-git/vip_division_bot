@@ -79,7 +79,7 @@ async def add_days(call: CallbackQuery, state: FSMContext, callback_data: AddDay
     await state.update_data(add_days_user_id=callback_data.id)
     await call.message.answer("Отправь количество дней продления или дату:\n\n"
                               "<b>Формат:</b>\n"
-                              "<i>+10 (Чтобы продлить на 10 дней)\n"
+                              "<i>+10 (Чтобы продлить на 10 дней)\n\n"
                               "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)</i>")
 
 @admin_router.message(AdminStates.add_days)
