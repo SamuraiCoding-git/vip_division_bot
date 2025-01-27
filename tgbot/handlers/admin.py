@@ -26,6 +26,11 @@ admin_router.callback_query.filter(AdminFilter())
 
 from aiogram.types import Message
 
+@admin_router.message(Command("admin"))
+async def admin_start(message: Message, state: FSMContext, bot: Bot):
+    sent_message = await message.answer("Панель админа:", reply_markup=admin_keyboard())
+    await delete_messages(bot, message.from_user.id, state, [sent_message.message_id])
+
 @admin_router.message(F.text.startswith("User Details:"))
 async def handle_message(message: Message):
     await message.delete()
@@ -73,13 +78,13 @@ async def handle_message(message: Message):
 async def add_days(call: CallbackQuery, state: FSMContext, callback_data: AddDaysCallbackData):
     await state.set_state(AdminStates.add_days)
     await state.update_data(add_days_user_id=callback_data.id)
-    await call.message.answer("Отправь количество дней продления или дату:\n"
-                              "Формат:\n"
-                              "+10 (Чтобы продлить на 10 дней)\n"
-                              "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)")
+    await call.message.answer("Отправь количество дней продления или дату:\n\n"
+                              "<b>Формат:</b>\n"
+                              "<q>+10 (Чтобы продлить на 10 дней)\n"
+                              "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)</q>")
 
 @admin_router.message(AdminStates.add_days)
-async def add_days_state(message: Message, state: FSMContext, callback_data: AddDaysCallbackData):
+async def add_days_state(message: Message, state: FSMContext):
     data = await state.get_data()
     repo = await get_repo(config)
 
@@ -120,12 +125,6 @@ async def blacklist_data(call: CallbackQuery, callback_data: BlacklistCallbackDa
         "is_blocked": not callback_data.is_blocked
     }
     await call.message.edit_reply_markup(reply_markup=user_status_keyboard(data))
-
-
-@admin_router.message(Command("admin"))
-async def admin_start(message: Message, state: FSMContext, bot: Bot):
-    sent_message = await message.answer("Панель админа:", reply_markup=admin_keyboard())
-    await delete_messages(bot, message.from_user.id, state, [sent_message.message_id])
 
 @admin_router.callback_query(F.data == "add_admin")
 async def add_admin_button(call: CallbackQuery, state: FSMContext, bot: Bot):
