@@ -28,8 +28,7 @@ async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback
     setting = await repo.settings.get_setting("Оплаты включены")
     data = await state.get_data()
     payments_opened = data.get("payments_opened")
-    print(not bool(payments_opened))
-    if not bool(payments_opened) or not setting.value:
+    if not bool(payments_opened) and not setting.value:
         photo = "AgACAgIAAxkBAAEBP7xnlkIuiQpw-aYs8nqINtD2LKmUYQAC4u0xG5m5sUjpbe1JhQadZwEAAwIAA3kAAzYE"
         caption = ("Приватный канал закрыт.\n\n"
                    "Но можешь насладиться подкастом")
