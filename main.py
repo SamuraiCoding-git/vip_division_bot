@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 import requests
 from aiohttp import web
 from celery import Celery
-
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
+from asgi_aiohttp import ASGIApplication  # ASGI adapter for aiohttp
 
 # Redis and Celery configuration
 REDIS_URL = "redis://:B7dG39pFzKvXrQwL5M2N8T1C4J6Y9H3P7Xv5RfQK2W8L9Z3TpVJ@92.119.114.185:6379/0"
@@ -29,6 +29,7 @@ PHOTO_ID_DICT = {
 
 VIDEO_FILE_ID = config.media.check_crypto_pay_video
 
+
 def create_hmac(data, key, algo='sha256'):
     try:
         data = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
@@ -38,6 +39,7 @@ def create_hmac(data, key, algo='sha256'):
     except Exception as e:
         print(f"Error in HMAC creation: {e}")
         return None
+
 
 def send_telegram_message(method, chat_id, media_id, caption, buttons=None):
     try:
@@ -64,6 +66,7 @@ def send_telegram_message(method, chat_id, media_id, caption, buttons=None):
         print(f"Error sending message: {e}")
         return False
 
+
 def send_telegram_text_message(chat_id, message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
@@ -74,11 +77,12 @@ def send_telegram_text_message(chat_id, message):
 
     try:
         response = requests.post(url, json=payload)
-        response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
         return None
+
 
 def create_invite_link(target_chat_id):
     try:
@@ -95,6 +99,7 @@ def create_invite_link(target_chat_id):
     except Exception as e:
         print(f"Error creating invite link: {e}")
         return None
+
 
 def unban_user_from_chat_or_channel(chat_id, user_id):
     try:
@@ -114,6 +119,7 @@ def unban_user_from_chat_or_channel(chat_id, user_id):
     except Exception as e:
         print(f"Error unbanning user {user_id} from chat {chat_id}: {e}")
         return False
+
 
 @celery.task
 def send_video_notification(chat_id, user_full_name):
@@ -137,6 +143,7 @@ def send_video_notification(chat_id, user_full_name):
         send_telegram_message("sendVideo", chat_id, VIDEO_FILE_ID, caption_video, buttons_video)
     except Exception as e:
         print(f"Error in send_video_notification: {e}")
+
 
 async def handle_request(request):
     try:
@@ -214,8 +221,12 @@ async def handle_request(request):
         print(f"Unexpected error: {e}")
         return web.json_response({'error': 'An unexpected error occurred', 'details': str(e)}, status=500)
 
+
+# Wrap the aiohttp app with ASGI compatibility
 app = web.Application()
 app.router.add_post('/', handle_request)
 
 if __name__ == '__main__':
-    web.run_app(app, host='0.0.0.0', port=5000)
+    asgi_app = ASGIApplication(app)
+    import uvicorn
+    uvicorn.run(asgi_app, host='0.0.0.0', port=5000)
