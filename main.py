@@ -29,6 +29,15 @@ PHOTO_ID_DICT = {
 VIDEO_FILE_ID = config.media.check_crypto_pay_video
 
 
+def start_celery_worker():
+    """Start the Celery worker process."""
+    from celery.bin.worker import worker
+    worker_instance = worker(app=celery)
+    worker_instance.run(
+        loglevel="info",
+        concurrency=1,  # Adjust the concurrency level as needed
+    )
+
 def create_hmac(data, key, algo='sha256'):
     try:
         data = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
@@ -248,4 +257,14 @@ class ASGIWrapper:
 
 if __name__ == '__main__':
     import uvicorn
+    from multiprocessing import Process
+
+    # Start Celery worker in a separate process
+    celery_process = Process(target=start_celery_worker)
+    celery_process.start()
+
+    # Start the ASGI server
     uvicorn.run(ASGIWrapper(app), host='0.0.0.0', port=5000)
+
+    # Ensure the Celery worker is terminated when the script stops
+    celery_process.join()
