@@ -94,3 +94,17 @@ class AdminRepo(BaseRepo):
         except SQLAlchemyError as e:
             await self.session.rollback()  # Rollback on error
             raise Exception(f"Error deleting admin {admin_id}: {e}")
+
+    async def is_admin(self, user_id: int) -> bool:
+        """
+        Checks if a user with the given ID is an admin.
+        :param user_id: The ID of the user to check.
+        :return: True if the user is an admin, False otherwise.
+        """
+        try:
+            query = select(Admin).filter(Admin.id == user_id)
+            result = await self.session.execute(query)
+            admin = result.scalar_one_or_none()
+            return admin is not None
+        except SQLAlchemyError as e:
+            raise Exception(f"Error checking if user {user_id} is an admin: {e}")

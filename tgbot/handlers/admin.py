@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 
 from aiogram import Router, F, Bot
+from aiogram.enums import ContentType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
@@ -53,6 +54,7 @@ async def handle_message(message: Message):
                 payments_number = await repo.payments.count_payments(user.id)
                 days = await repo.subscriptions.get_combined_active_subscription_days(user.id)
                 subscription_end_date = get_readable_subscription_end_date(days)
+                is_admin = await repo.admins.is_admin(user_id)
                 data = {
                     "id": user.id,
                     "is_blocked": is_blocked
@@ -61,8 +63,9 @@ async def handle_message(message: Message):
                                      f"Имя: {user.full_name}\n"
                                      f"ID: {user.id}\n"
                                      f"Username: {user.username}\n"
+                                     f"Админ: {'да' if is_admin else 'нет'}\n"
                                      f"Количество платежей: {payments_number}\n"
-                                     f"Дата окончания подписки: {subscription_end_date}",
+                                     f"Дата окончания подписки: {subscription_end_date} ({days})",
                                      reply_markup=user_status_keyboard(data))
             else:
                 await message.answer("User not found.")
@@ -77,13 +80,15 @@ async def handle_message(message: Message):
 async def add_days(call: CallbackQuery, state: FSMContext, callback_data: AddDaysCallbackData):
     await state.set_state(AdminStates.add_days)
     await state.update_data(add_days_user_id=callback_data.id)
-    await call.message.answer("Отправь количество дней продления или дату:\n\n"
-                              "<b>Формат:</b>\n"
-                              "<i>+10 (Чтобы продлить на 10 дней)\n\n"
-                              "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)</i>")
+    sent_message = await call.message.answer("Отправь количество дней продления или дату:\n\n"
+                                             "<b>Формат:</b>\n"
+                                             "<i>+10 (Чтобы продлить на 10 дней)\n\n"
+                                             "2025-06-19 (Чтобы продлить подписку до 19 июня 2025 года)</i>")
+    await delete_messages(call.bot, call.message.chat.id, state, [sent_message.message_id])
 
 @admin_router.message(AdminStates.add_days)
 async def add_days_state(message: Message, state: FSMContext):
+    await message.delete()
     data = await state.get_data()
     repo = await get_repo(config)
 
@@ -112,6 +117,9 @@ async def add_days_state(message: Message, state: FSMContext):
     except ValueError as e:
         await message.answer(f"Ошибка: {e}")
 
+    sent_message = await message.answer("Панель админа:", reply_markup=admin_keyboard())
+    await delete_messages(message.bot, message.from_user.id, state, [sent_message.message_id])
+
 @admin_router.callback_query(BlacklistCallbackData.filter())
 async def blacklist_data(call: CallbackQuery, callback_data: BlacklistCallbackData, config: Config):
     repo = await get_repo(config)
@@ -132,6 +140,48 @@ async def add_admin_button(call: CallbackQuery, state: FSMContext, bot: Bot):
     await state.set_state(AdminStates.admin_id)
 
     await delete_messages(bot, call.message.chat.id, state, [sent_message.message_id])
+
+@admin_router.callback_query(F.data == "mailing")
+async def mailing(call: CallbackQuery, state: FSMContext, bot: Bot):
+    await call.message.answer("Отправьте сообщение для рассылки:")
+    await state.set_state(AdminStates.mailing_message)
+
+
+@admin_router.message(AdminStates.mailing_message & F.content_type.in_([
+    ContentType.PHOTO, ContentType.VIDEO, ContentType.DOCUMENT, ContentType.AUDIO, ContentType.VOICE, ContentType.STICKER, ContentType.TEXT
+]))
+async def mailing_message(message: Message, state: FSMContext):
+    data_to_save = {
+        "file_id": None,
+        "caption": message.caption if message.caption else None,
+        "text": message.text if message.text else None,
+    }
+
+    if message.content_type == ContentType.PHOTO:
+        data_to_save["file_id"] = message.photo[-1].file_id
+    elif message.content_type == ContentType.VIDEO:
+        data_to_save["file_id"] = message.video.file_id
+    elif message.content_type == ContentType.DOCUMENT:
+        data_to_save["file_id"] = message.document.file_id
+    elif message.content_type == ContentType.AUDIO:
+        data_to_save["file_id"] = message.audio.file_id
+    elif message.content_type == ContentType.VOICE:
+        data_to_save["file_id"] = message.voice.file_id
+    elif message.content_type == ContentType.STICKER:
+        data_to_save["file_id"] = message.sticker.file_id
+    elif message.content_type == ContentType.TEXT:
+        pass
+    else:
+        await message.reply("Тип контента не поддерживается.")
+        return
+
+    await state.update_data(mailing_data=data_to_save)
+
+    await message.reply("Сообщение сохранено.\n"
+                        "Настрой клавиатуру:")
+
+
+@admin_router.callback_query()
 
 @admin_router.message(AdminStates.admin_id)
 async def admin_id_state(message: Message, config: Config, bot: Bot, state: FSMContext):

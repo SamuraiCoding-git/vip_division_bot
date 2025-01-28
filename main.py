@@ -185,12 +185,10 @@ async def handle_request(request):
         if subscription.gifted_by:
             gifter = await repo.users.select_user(int(subscription.gifted_by))
 
-
             caption_photo = (f"✅ Подписка на канал подарена {gifter.full_name}!\n"
                              "Перeходи по кнопкам ниже:")
             gifter_text = "Подписка успешно подарена!"
-            await send_telegram_text_message(chat_id,
-                                             gifter_text)
+            await send_telegram_text_message(chat_id, gifter_text)
         else:
             caption_photo = ("✅ Подписка на канал успешно оформлена!\n"
                              "Перeходи по кнопкам ниже:")

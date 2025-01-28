@@ -447,6 +447,21 @@ def admin_keyboard():
         ],
         [
             InlineKeyboardButton(text="Статус пользователя", switch_inline_query_current_chat="")
+        ],
+        [
+            InlineKeyboardButton(text="Рассылка", callback_data="mailing")
+        ]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+def mailing_settings_keyboard():
+    buttons = [
+        [
+            InlineKeyboardButton(text="Настроить клавиатуру")
+        ],
+        [
+            InlineKeyboardButton(text="Пропустить клавиатуру")
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -493,7 +508,6 @@ def settings_keyboard(settings: dict, state: str):
     keyboard.add(InlineKeyboardButton(text="НАЗАД ↩", callback_data=BackCallbackData(state=state).pack()))
     keyboard.adjust(1)
     return keyboard.as_markup()
-
 
 
 def admin_delete_keyboard(id, state):
