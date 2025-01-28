@@ -3,6 +3,7 @@ import hmac
 import json
 from datetime import datetime, timedelta
 import requests
+import uvicorn
 from aiohttp import web
 from celery import Celery
 from multiprocessing import Process
