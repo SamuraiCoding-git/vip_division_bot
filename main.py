@@ -4,15 +4,14 @@ import json
 from datetime import datetime, timedelta
 import requests
 from aiohttp import web
-from multiprocessing import Process
 from celery import Celery
-from celery.bin.worker import worker
+from multiprocessing import Process
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
 
 # Redis и Celery конфигурация
 REDIS_URL = "redis://:B7dG39pFzKvXrQwL5M2N8T1C4J6Y9H3P7Xv5RfQK2W8L9Z3TpVJ@92.119.114.185:6379/0"
-celery_app = Celery("tasks", broker=REDIS_URL, backend=REDIS_URL)
+celery_app = Celery("main", broker=REDIS_URL, backend=REDIS_URL)
 
 # Конфигурация приложения
 SECRET_KEY = 'd9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c'
@@ -31,23 +30,32 @@ PHOTO_ID_DICT = {
 VIDEO_FILE_ID = config.media.check_crypto_pay_video
 
 
+@celery_app.task
+def test_task():
+    """Тестовая задача для проверки работы Celery."""
+    print("Test task is running successfully!")
+
+
 def start_celery_worker():
-    """Запускаем Celery Worker."""
+    """Запуск Celery Worker."""
+    from celery.bin.worker import worker
+
     argv = [
-        "worker",  # Команда запуска worker
-        "-A", "main",  # Указываем модуль, где определён Celery (main.py)
-        "--loglevel=info",  # Уровень логов
-        "--concurrency=1",  # Количество потоков (можно увеличить)
+        "worker",  # Запуск Celery worker
+        "-A", "main",  # Указание модуля (main.py)
+        "--loglevel=info",  # Уровень логирования
+        "--concurrency=1",  # Количество потоков
     ]
     worker().run(argv=argv)
 
 
 async def handle_request(request):
-    """Обработчик HTTP-запросов."""
+    """Простой обработчик HTTP-запроса."""
+    test_task.delay()  # Тестируем Celery задачу
     return web.json_response({'message': 'success'}, status=200)
 
 
-# Определяем приложение aiohttp
+# Определение aiohttp приложения
 app = web.Application()
 app.router.add_post('/', handle_request)
 
@@ -75,12 +83,12 @@ class ASGIWrapper:
 if __name__ == '__main__':
     import uvicorn
 
-    # Запускаем Celery worker в отдельном процессе
+    # Запуск Celery Worker в отдельном процессе
     celery_process = Process(target=start_celery_worker)
     celery_process.start()
 
-    # Запускаем сервер Uvicorn
+    # Запуск ASGI-сервера
     uvicorn.run(ASGIWrapper(app), host='0.0.0.0', port=5000)
 
-    # Завершаем процесс Celery worker при остановке основного скрипта
+    # Завершаем Celery Worker при завершении основного процесса
     celery_process.join()
