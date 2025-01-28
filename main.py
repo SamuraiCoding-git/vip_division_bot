@@ -8,7 +8,6 @@ from aiohttp import web
 from celery import Celery
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
-from asgi_aiohttp import ASGIApplication  # ASGI adapter for aiohttp
 
 # Redis and Celery configuration
 REDIS_URL = "redis://:B7dG39pFzKvXrQwL5M2N8T1C4J6Y9H3P7Xv5RfQK2W8L9Z3TpVJ@92.119.114.185:6379/0"
@@ -226,7 +225,27 @@ async def handle_request(request):
 app = web.Application()
 app.router.add_post('/', handle_request)
 
+
+# Custom ASGI wrapper for aiohttp
+class ASGIWrapper:
+    def __init__(self, aiohttp_app):
+        self.aiohttp_app = aiohttp_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            raise NotImplementedError("Only HTTP connections are supported.")
+        aiohttp_app = self.aiohttp_app
+
+        async def asgi_receive():
+            message = await receive()
+            return message
+
+        async def asgi_send(message):
+            await send(message)
+
+        await aiohttp_app(scope, asgi_receive, asgi_send)
+
+
 if __name__ == '__main__':
-    asgi_app = ASGIApplication(app)
     import uvicorn
-    uvicorn.run(asgi_app, host='0.0.0.0', port=5000)
+    uvicorn.run(ASGIWrapper(app), host='0.0.0.0', port=5000)
