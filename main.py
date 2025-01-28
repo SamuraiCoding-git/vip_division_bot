@@ -32,11 +32,14 @@ VIDEO_FILE_ID = config.media.check_crypto_pay_video
 def start_celery_worker():
     """Start the Celery worker process."""
     from celery.bin.worker import worker
+
+    # Set up the worker with the correct app
     worker_instance = worker()
     argv = [
         "worker",  # Celery worker command
+        "-A", "main",  # Specify the current module where Celery app is defined
         "--loglevel=info",  # Set log level
-        "--concurrency=1"  # Adjust concurrency as needed
+        "--concurrency=1",  # Adjust concurrency as needed
     ]
     worker_instance.run(argv=argv)
 
