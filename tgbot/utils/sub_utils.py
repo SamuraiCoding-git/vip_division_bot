@@ -2,56 +2,66 @@ from datetime import datetime, timedelta
 
 import requests
 from aiogram import Bot
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from infrastructure.database.models.order import Order
 from infrastructure.database.repo.requests import RequestsRepo
 from infrastructure.database.setup import create_session_pool
 from tgbot.config import Config
 from tgbot.utils.payment_utils import process_payment
 
 
-async def send_notification(bot: Bot, user_id: int, message: str):
-    await bot.send_message(user_id, "Подписка успешно")
-
-
-async def check_subscriptions(session: AsyncSession, bot: Bot, config: Config):
+async def check_subscriptions(bot: Bot, config: Config):
     session_pool = await create_session_pool(config.db)
 
     async with session_pool() as session:
         repo = RequestsRepo(session)
-    orders = await repo.orders.get_paid_orders()
 
-    for order in orders:
-        plan = await repo.plans.select_plan(order.plan_id)
-        try:
-            duration_days = int(order.plan.duration)  # Ensure duration is an integer
-        except ValueError:
-            print(f"Invalid plan duration for order {order.id}: {order.plan.duration}")
-            continue
-
-        # Calculate days remaining until the subscription ends
+        subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
         now = datetime.utcnow()
-        end_date = order.start_date + timedelta(days=duration_days)
-        days_remaining = (end_date - now).days
 
-        if days_remaining <= 0:
-            # Process recurring payment or mark subscription as expired
-            try:
-                await process_payment(
-                    order.binding_id,
-                    order.user_id,
-                    config.misc.sys,
-                    config.payment.token,
-                    config.misc.payment_form_url,
-                    order.total_price
-                )
-                print(f"Recurring payment successful for order {order.id}")
-            except Exception as e:
-                print(f"Failed to process recurring payment for order {order.id}: {e}")
-                order.is_paid = False
-                await send_notification(order.user_id, "Your subscription has expired.")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="Моя подписка✅", callback_data="my_subscription")
+                ]
+            ]
+        )
+
+        for subscription in subscriptions:
+            days_remaining = (subscription.end_date - now).days
+
+            if days_remaining <= 0:
+                try:
+                    await process_payment(
+                        subscription.binding_id,
+                        subscription.user_id,
+                        config.misc.sys,
+                        config.payment.token,
+                        config.misc.payment_form_url,
+                        subscription.plan.discounted_price
+                    )
+                    subscription.end_date += timedelta(days=subscription.plan.duration)
+                    await session.commit()
+                    await bot.send_message(subscription.user_id, "✅ Ваша подписка успешно продлена!",
+                                           reply_markup=keyboard)
+
+                except Exception as e:
+                    print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
+                    subscription.is_recurrent = False
+                    await session.commit()
+                    await send_failed_renewal_notification(bot, subscription.user_id)
+
+async def send_failed_renewal_notification(bot: Bot, user_id: int):
+    text = (
+        "Удален из канала\n\n"
+        "❌ <b>Продление подписки не удалось.</b>"
+    )
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Вернуться в канал ↩️", callback_data="tariffs")],
+        [InlineKeyboardButton(text="🤝🏽 Написать в поддержку", url="https://t.me/vipdivision")]
+    ])
+
+    await bot.send_message(user_id, text, reply_markup=keyboard, parse_mode="HTML")
 
 def normalize_usdt_price(transaction_data):
     """

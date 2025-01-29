@@ -309,3 +309,13 @@ class SubscriptionRepo(BaseRepo):
             raise Exception(f"Error extending subscription for user {user_id} with extension {extension}: {e}")
         except ValueError as e:
             raise Exception(f"Invalid extension value: {e}")
+
+
+    async def get_active_recurrent_subscriptions(self):
+        query = select(Subscription).filter(
+            Subscription.is_recurrent == True,
+            Subscription.status == "active",
+            Subscription.end_date >= datetime.utcnow()
+        )
+        result = await self.session.execute(query)
+        return result.scalars().all()

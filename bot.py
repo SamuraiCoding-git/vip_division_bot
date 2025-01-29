@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from infrastructure.database.setup import create_session_pool
 from schedulers.base import setup_scheduler
@@ -21,6 +22,7 @@ from tgbot.services import broadcaster
 from aiogram.types import BotCommand, BotCommandScopeAllPrivateChats
 
 from tgbot.utils.db_utils import get_repo
+from tgbot.utils.sub_utils import check_subscriptions
 
 
 async def set_bot_commands(bot: Bot):
@@ -91,6 +93,11 @@ def setup_logging():
     logger.info("Starting bot")
 
 
+async def start_scheduler(bot: Bot, config: Config):
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_subscriptions, "cron", hour=12, minute=0, args=[bot, config])
+    scheduler.start()
+
 def get_storage(config):
     """
     Return storage based on the provided configuration.
@@ -151,6 +158,7 @@ async def main():
     register_global_middlewares(dp, config, scheduler, session_pool)
 
     await create_session_pool(config.db)
+    await start_scheduler(bot, config)
     await set_bot_commands(bot)
     await on_startup(bot, admin_ids)
     await dp.start_polling(bot)
