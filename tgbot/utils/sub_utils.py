@@ -15,19 +15,21 @@ async def check_subscriptions(bot: Bot, config: Config):
 
     async with session_pool() as session:
         repo = RequestsRepo(session)
-
         subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
         now = datetime.utcnow()
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [
-                    InlineKeyboardButton(text="Моя подписка✅", callback_data="my_subscription")
-                ]
-            ]
-        )
+            [InlineKeyboardButton(text="Моя подписка✅", callback_data="my_subscription")]
+        ])
 
         for subscription in subscriptions:
             days_remaining = (subscription.end_date - now).days
+
+            if days_remaining == 0:
+                await bot.send_message(
+                    subscription.user_id,
+                    "⏳ Ваша подписка заканчивается сегодня. Продление произойдет автоматически, если у вас подключена автоподписка."
+                )
 
             if days_remaining <= 0:
                 try:
@@ -48,7 +50,11 @@ async def check_subscriptions(bot: Bot, config: Config):
                     print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
                     subscription.is_recurrent = False
                     await session.commit()
+
                     await send_failed_renewal_notification(bot, subscription.user_id)
+
+                    await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
+
 
 async def send_failed_renewal_notification(bot: Bot, user_id: int):
     text = (
@@ -62,6 +68,17 @@ async def send_failed_renewal_notification(bot: Bot, user_id: int):
     ])
 
     await bot.send_message(user_id, text, reply_markup=keyboard, parse_mode="HTML")
+
+
+async def ban_user_from_channel_and_chat(bot: Bot, user_id: int, config: Config):
+    try:
+
+        await bot.ban_chat_member(chat_id=config.misc.private_channel_id, user_id=user_id)
+        await bot.ban_chat_member(chat_id=config.misc.private_chat_id, user_id=user_id)
+
+        print(f"✅ Пользователь {user_id} забанен в канале {config.misc.private_channel_id} и чате {config.misc.private_chat_id}.")
+    except Exception as e:
+        print(f"❌ Ошибка при бане пользователя {user_id}: {e}")
 
 def normalize_usdt_price(transaction_data):
     """
