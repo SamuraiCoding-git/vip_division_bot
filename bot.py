@@ -95,7 +95,7 @@ def setup_logging():
 
 async def start_scheduler(bot: Bot, config: Config):
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions, "cron", hour=22, minute=30, args=[bot, config])
+    scheduler.add_job(check_subscriptions, "cron", hour=22, minute=45, args=[bot, config])
     scheduler.start()
 
 def get_storage(config):
@@ -114,11 +114,6 @@ def get_storage(config):
     if config.tg_bot.use_redis:
         logging.info("Using Redis as FSM storage")
         try:
-            # Debug Redis configuration
-            logging.info(f"Redis DSN: {config.redis.dsn()}")
-            logging.info(f"Redis Host: {config.redis.redis_host}")
-            logging.info(f"Redis Port: {config.redis.redis_port}")
-            logging.info(f"Redis Password: {config.redis.redis_pass}")
 
             # Ensure critical parameters are set
             if not config.redis.redis_host or not config.redis.redis_port:

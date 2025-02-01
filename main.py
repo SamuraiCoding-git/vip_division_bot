@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 from aiohttp import web
+from kombu import binding
 
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
@@ -169,7 +170,8 @@ async def handle_request(request):
             amount=int(float(form_data['sum'])),
             currency="RUB",
             payment_method="card_ru",
-            is_successful=True
+            is_successful=True,
+            binding_id=form_data['binding_id']
         )
 
         photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)
