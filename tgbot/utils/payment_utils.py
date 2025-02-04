@@ -19,8 +19,7 @@ def generate_payment_link(client_id, order_id, products, secret_key, linktoform)
     :return: str, ссылка для оплаты
     """
 
-    text = (f"Спасибо за покупку подписки “VipDivision” за {products[0]['price']}.\n"
-            "Чтобы получить доступ перейдите по ссылке https://t.me/VipDivision_bot")
+    text = (f"Спасибо за покупку подписки “VipDivision” за {products[0]['price']}.\nЧтобы получить доступ перейдите по ссылке https://t.me/VipDivision_bot")
 
     # Подготовка данных
     data = {
