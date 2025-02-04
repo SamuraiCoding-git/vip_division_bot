@@ -29,7 +29,7 @@ def generate_payment_link(client_id, order_id, products, secret_key, linktoform)
         "products": products,
         "do": "link",
         "sys": "vipdivision",
-        "customer_extra": text.join("\n")
+        "customer_extra": text
     }
 
     # Генерация подписи
