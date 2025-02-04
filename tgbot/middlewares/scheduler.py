@@ -6,13 +6,21 @@ from aiogram.types import Message
 
 class SchedulerMiddleware(BaseMiddleware):
     def __init__(self, scheduler) -> None:
+        super().__init__()
         self.scheduler = scheduler
 
     async def __call__(
-        self,
-        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Message,
-        data: Dict[str, Any],
+            self,
+            handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
+            event: Message,
+            data: Dict[str, Any],
     ) -> Any:
-        data["scheduler"] = self.scheduler
-        return await handler(event, data)
+        try:
+            data["scheduler"] = self.scheduler
+
+            print(f"[SchedulerMiddleware] Called for event: {event}")
+
+            return await handler(event, data)
+        except Exception as e:
+            print(f"[SchedulerMiddleware] Error: {e}")
+            raise
