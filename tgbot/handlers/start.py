@@ -7,7 +7,6 @@ from tgbot.config import Config
 from tgbot.filters.private import IsPrivateFilter
 from tgbot.keyboards.callback_data import OfferConsentCallbackData
 from tgbot.keyboards.inline import offer_consent_keyboard, greeting_keyboard, generate_payment_keyboard
-from tgbot.misc.states import Suggestion
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.message_utils import delete_messages, handle_deeplink, send_consent_request, start_suggestion, \
     send_ded_gs_message, default_action, activate_payment

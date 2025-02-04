@@ -7,6 +7,8 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.exc import IntegrityError
+from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
+
 
 from main import config
 from tgbot.config import Config, load_config
@@ -147,9 +149,14 @@ async def mailing(call: CallbackQuery, state: FSMContext, bot: Bot):
     await state.set_state(AdminStates.mailing_message)
 
 
-@admin_router.message(AdminStates.mailing_message & F.content_type.in_([
-    ContentType.PHOTO, ContentType.VIDEO, ContentType.DOCUMENT, ContentType.AUDIO, ContentType.VOICE, ContentType.STICKER, ContentType.TEXT
-]))
+@admin_router.message(
+    (F.state == AdminStates.mailing_message) &
+    F.content_type.in_([
+        ContentType.PHOTO, ContentType.VIDEO, ContentType.DOCUMENT,
+        ContentType.AUDIO, ContentType.VOICE, ContentType.STICKER, ContentType.TEXT
+    ])
+)
+
 async def mailing_message(message: Message, state: FSMContext):
     data_to_save = {
         "file_id": None,
@@ -257,9 +264,6 @@ async def settings_callback_data(call: CallbackQuery, callback_data: SettingsCal
     await repo.settings.update_payment_status(not callback_data.value, callback_data.id)
     settings = await repo.settings.get_all_settings_as_dict()
     await call.message.edit_reply_markup(reply_markup=settings_keyboard(settings, "admin"))
-
-
-from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
 
 @admin_router.inline_query()
 async def user_inline_query(inline_query: InlineQuery):
