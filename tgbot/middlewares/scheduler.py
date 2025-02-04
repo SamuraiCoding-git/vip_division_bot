@@ -17,10 +17,6 @@ class SchedulerMiddleware(BaseMiddleware):
     ) -> Any:
         try:
             data["scheduler"] = self.scheduler
-
-            print(f"[SchedulerMiddleware] Called for event: {event}")
-
             return await handler(event, data)
         except Exception as e:
-            print(f"[SchedulerMiddleware] Error: {e}")
             raise
