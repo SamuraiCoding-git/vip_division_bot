@@ -19,7 +19,7 @@ async def check_subscriptions(bot: Bot, config: Config):
         now = datetime.utcnow()
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Моя подписка✅", callback_data="my_subscription")]
+            [InlineKeyboardButton(text="Моя подписка ✅", callback_data="my_subscription")]
         ])
 
         for subscription in subscriptions:

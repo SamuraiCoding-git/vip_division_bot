@@ -6,7 +6,6 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 from aiohttp import web
-from kombu import binding
 
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
