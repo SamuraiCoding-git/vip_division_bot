@@ -18,6 +18,10 @@ def generate_payment_link(client_id, order_id, products, secret_key, linktoform)
     :param linktoform: str, базовый URL формы оплаты
     :return: str, ссылка для оплаты
     """
+
+    text = (f"Спасибо за покупку подписки “VipDivision” за {products[0]['price']}.\n"
+            "Чтобы получить доступ перейдите по ссылке https://t.me/VipDivision_bot")
+
     # Подготовка данных
     data = {
         "client_id": client_id,
@@ -25,6 +29,7 @@ def generate_payment_link(client_id, order_id, products, secret_key, linktoform)
         "products": products,
         "do": "link",
         "sys": "vipdivision",
+        "customer_extra": text.join("\n")
     }
 
     # Генерация подписи
