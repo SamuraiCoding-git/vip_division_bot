@@ -181,8 +181,6 @@ async def mailing_message(message: Message, state: FSMContext):
                         "Настрой клавиатуру:")
 
 
-@admin_router.callback_query()
-
 @admin_router.message(AdminStates.admin_id)
 async def admin_id_state(message: Message, config: Config, bot: Bot, state: FSMContext):
     message_ids = []
