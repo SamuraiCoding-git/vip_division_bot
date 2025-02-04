@@ -97,24 +97,41 @@ def create_invite_link(target_chat_id):
         print(f"Error creating invite link: {e}")
         return None
 
+def is_user_admin(chat_id, user_id):
+    """Проверяет, является ли пользователь администратором чата"""
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getChatMember"
+        payload = {"chat_id": chat_id, "user_id": user_id}
+        response = requests.post(url, json=payload)
+        if response.ok:
+            result = response.json().get("result", {})
+            status = result.get("status")
+            return status in ["administrator", "creator"]
+        print(f"Failed to get chat member info: {response.text}")
+        return False
+    except Exception as e:
+        print(f"Error checking admin status: {e}")
+        return False
+
 def unban_user_from_chat_or_channel(chat_id, user_id):
-    """Разблокировка пользователя в чате/канале."""
+    """Разблокировка пользователя в чате/канале, если он не является администратором"""
+    if is_user_admin(chat_id, user_id):
+        print(f"User {user_id} is an administrator in chat {chat_id}. Skipping unban.")
+        return True
+
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/unbanChatMember"
-        payload = {
-            "chat_id": chat_id,
-            "user_id": user_id
-        }
+        payload = {"chat_id": chat_id, "user_id": user_id}
         response = requests.post(url, json=payload)
         if response.ok:
             print(f"User {user_id} unbanned successfully from chat {chat_id}.")
+            return True
         else:
             print(f"Failed to unban user {user_id} from chat {chat_id}: {response.text}")
-        return response.ok
+            return False
     except Exception as e:
         print(f"Error unbanning user {user_id} from chat {chat_id}: {e}")
         return False
-
 def send_video_notification(chat_id, user_full_name):
     """Фоновая задача для отправки видео."""
     try:
