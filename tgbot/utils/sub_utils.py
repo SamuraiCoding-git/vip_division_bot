@@ -49,6 +49,7 @@ async def check_subscriptions(bot: Bot, config: Config):
                 except Exception as e:
                     print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
                     subscription.is_recurrent = False
+                    subscription.status = "expired"
                     await session.commit()
 
                     await send_failed_renewal_notification(bot, subscription.user_id)

@@ -58,6 +58,16 @@ class PlanRepo(BaseRepo):
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
+    async def select_plan_sum(self, sum: int) -> Optional[Plan]:
+        """
+        Retrieves a plan by its ID.
+        :param plan_id: The ID of the plan.
+        :return: Plan object, or None if not found.
+        """
+        query = select(Plan).filter(Plan.discounted_price == sum)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
     async def get_all_plans(self) -> List[Plan]:
         """
         Retrieves all plans from the database.

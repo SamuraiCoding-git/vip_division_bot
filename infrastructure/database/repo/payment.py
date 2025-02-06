@@ -18,6 +18,18 @@ class PaymentRepo(BaseRepo):
         except SQLAlchemyError as e:
             raise Exception(f"Error fetching payment with ID {payment_id}: {e}")
 
+    async def get_payment_by_phone_number(self, phone_number: str) -> Optional[Payment]:
+        """
+        Retrieves a payment by its ID.
+        :param payment_id: The ID of the payment.
+        :return: Payment object, or None if not found.
+        """
+        try:
+            payment = await self.session.get(Payment, phone_number)
+            return payment
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching payment with phone number {phone_number}: {e}")
+
     async def get_all_payments(self) -> List[Payment]:
         """
         Retrieves all payments.
