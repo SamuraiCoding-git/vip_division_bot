@@ -187,7 +187,8 @@ async def handle_request(request):
             currency="RUB",
             payment_method="card_ru",
             is_successful=True,
-            binding_id=form_data['binding_id']
+            binding_id=form_data['binding_id'],
+            phone_number=form_data['phone_number'],
         )
 
         photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)

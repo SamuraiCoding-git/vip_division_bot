@@ -72,6 +72,7 @@ class PaymentRepo(BaseRepo):
         is_successful: Optional[bool] = None,
         hash: Optional[str] = None,
         binding_id: Optional[str] = None,
+        phone_number: Optional[str] = None,
     ) -> "Payment":
         """
         Updates an existing payment record with optional fields.
@@ -104,6 +105,8 @@ class PaymentRepo(BaseRepo):
                 payment.hash = hash
             if binding_id is not None:
                 payment.binding_id = binding_id
+            if phone_number is not None:
+                payment.phone_number = phone_number
 
             # Commit the changes
             await self.session.commit()
