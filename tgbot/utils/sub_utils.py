@@ -22,7 +22,7 @@ async def check_subscriptions(bot: Bot, config: Config):
 
     for subscription in subscriptions:
         if subscription.user_id != 422999166:
-            return
+            continue
         payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
         days_remaining = (subscription.end_date - now).days
 
