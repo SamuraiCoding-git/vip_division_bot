@@ -46,7 +46,7 @@ async def check_subscriptions(bot: Bot, config: Config):
 
                 await send_failed_renewal_notification(bot, subscription.user_id)
 
-                await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
+                # await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
 
 
 async def send_failed_renewal_notification(bot: Bot, user_id: int):
