@@ -8,6 +8,7 @@ import requests
 from aiohttp import web
 
 from tgbot.config import load_config
+from tgbot.handlers import subscription_router
 from tgbot.utils.db_utils import get_repo
 
 # Конфигурация
@@ -179,17 +180,18 @@ async def handle_request(request):
             if not subscription:
                 return web.json_response({'error': 'Payment not found'}, status=404)
         else:
-            plan = await repo.plans.select_plan_sum(int(float(form_data['sum'])))
-            subscription = await repo.subscriptions.create_subscription(chat_id, plan.id)
+            subscription = await repo.subscriptions.get_latest_active_subscription(chat_id)
             payment = await repo.payments.create_payment(chat_id, subscription.id)
 
         plan = await repo.plans.select_plan(subscription.plan_id)
+
+        end_date = subscription.end_date or datetime.now()
 
         subscription = await repo.subscriptions.update_subscription(
             subscription_id=payment.subscription_id,
             status="active",
             start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(days=plan.duration)
+            end_date=end_date + timedelta(days=plan.duration)
         )
 
         phone_number = form_data.get('phone_number') or form_data.get('customer_phone')
