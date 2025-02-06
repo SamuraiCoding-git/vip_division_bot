@@ -95,7 +95,7 @@ def setup_logging():
 
 async def start_scheduler(bot: Bot, config: Config):
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions, "cron", hour=13, minute=31, args=[bot, config])
+    scheduler.add_job(check_subscriptions, "cron", hour=13, minute=32, args=[bot, config])
     scheduler.start()
 
 def get_storage(config):
