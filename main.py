@@ -175,11 +175,13 @@ async def handle_request(request):
         if not subscription:
             return web.json_response({'error': 'Payment not found'}, status=404)
 
+        plan = await repo.plans.select_plan(subscription.plan_id)
+
         subscription = await repo.subscriptions.update_subscription(
             subscription_id=payment.subscription_id,
             status="active",
             start_date=datetime.now(),
-            end_date=datetime.now() + timedelta(days=subscription.plan_id)
+            end_date=datetime.now() + timedelta(days=plan.duration)
         )
         payment = await repo.payments.update_payment(
             payment_id=int(form_data['order_num']),
