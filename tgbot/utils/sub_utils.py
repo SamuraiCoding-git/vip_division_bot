@@ -21,6 +21,8 @@ async def check_subscriptions(bot: Bot, config: Config):
     ])
 
     for subscription in subscriptions:
+        if subscription.user_id == 422999166:
+            print(422999166)
         if subscription.user_id != 422999166:
             continue
         payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
