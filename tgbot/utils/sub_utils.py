@@ -44,7 +44,7 @@ async def check_subscriptions(bot: Bot, config: Config):
                 print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
                 await repo.subscriptions.expire_subscription(subscription.id)
 
-                await send_failed_renewal_notification(bot, subscription.user_id)
+                # await send_failed_renewal_notification(bot, subscription.user_id)
 
                 # await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
 
