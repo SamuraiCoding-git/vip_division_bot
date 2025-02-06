@@ -143,6 +143,7 @@ def process_payment(binding_id, client_id, sys, secret_key, api_url, order_sum):
     try:
         response = requests.post(api_url + "/rest/payment/do", headers=headers, data=data)
         response_data = response.json()
+        print(response_data)
         return response_data
     except Exception as e:
         return {"success": False, "error": str(e)}
