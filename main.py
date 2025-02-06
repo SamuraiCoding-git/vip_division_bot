@@ -8,7 +8,6 @@ import requests
 from aiohttp import web
 
 from tgbot.config import load_config
-from tgbot.handlers import subscription_router
 from tgbot.utils.db_utils import get_repo
 
 # Конфигурация
