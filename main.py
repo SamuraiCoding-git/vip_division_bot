@@ -9,7 +9,6 @@ from aiohttp import web
 
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
-from ф import phone_number
 
 # Конфигурация
 SECRET_KEY = 'd9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c'
