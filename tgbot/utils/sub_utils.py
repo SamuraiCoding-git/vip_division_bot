@@ -26,17 +26,10 @@ async def check_subscriptions(bot: Bot, config: Config):
             payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
             days_remaining = (subscription.end_date - now).days
 
-            if days_remaining == 0:
+            if days_remaining <= 0:
                 print(days_remaining)
             else:
                 pass
-
-
-            if days_remaining == 0:
-                await bot.send_message(
-                    subscription.user_id,
-                    "⏳ Ваша подписка заканчивается сегодня. Продление произойдет автоматически, если у вас подключена автоподписка."
-                )
 
             if days_remaining <= 0:
                 try:
