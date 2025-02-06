@@ -161,19 +161,27 @@ async def handle_request(request):
         form_data = await request.post()
         repo = await get_repo(config)
 
-        user = await repo.users.select_user(int(form_data['client_id']))
+        if not form_data['client_id']:
+            payment = await repo.payments.get_payment_by_phone_number(form_data['phone_number'])
+            user = await repo.users.select_user(payment.user_id)
+        else:
+            user = await repo.users.select_user(int(form_data['client_id']))
         if not user:
             return web.json_response({'error': 'User not found'}, status=404)
 
         chat_id = user.id
+        if form_data['client_id']:
+            payment = await repo.payments.get_payment_by_id(int(form_data['order_num']))
+            if not payment:
+                return web.json_response({'error': 'Payment not found'}, status=404)
 
-        payment = await repo.payments.get_payment_by_id(int(form_data['order_num']))
-        if not payment:
-            return web.json_response({'error': 'Payment not found'}, status=404)
-
-        subscription = await repo.subscriptions.get_subscription_by_id(payment.subscription_id)
-        if not subscription:
-            return web.json_response({'error': 'Payment not found'}, status=404)
+            subscription = await repo.subscriptions.get_subscription_by_id(payment.subscription_id)
+            if not subscription:
+                return web.json_response({'error': 'Payment not found'}, status=404)
+        else:
+            plan = await repo.plans.select_plan_sum(int(float(form_data['sum'])))
+            subscription = await repo.subscriptions.create_subscription(chat_id, plan.id)
+            payment = await repo.payments.create_payment(chat_id, subscription.id)
 
         plan = await repo.plans.select_plan(subscription.plan_id)
 
@@ -184,13 +192,13 @@ async def handle_request(request):
             end_date=datetime.now() + timedelta(days=plan.duration)
         )
         payment = await repo.payments.update_payment(
-            payment_id=int(form_data['order_num']),
+            payment_id=payment.id,
             amount=int(float(form_data['sum'])),
             currency="RUB",
             payment_method="card_ru",
             is_successful=True,
-            binding_id=form_data['binding_id'],
-            phone_number=form_data['phone_number'],
+            binding_id=form_data.get('binding_id'),
+            phone_number=form_data['phone_number'] or form_data['customer_phone'],
         )
 
         photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)
