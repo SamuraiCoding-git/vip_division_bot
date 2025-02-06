@@ -16,6 +16,7 @@ async def check_subscriptions(bot: Bot, config: Config):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
+        print(subscriptions)
         now = datetime.utcnow()
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
