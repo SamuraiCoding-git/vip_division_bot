@@ -28,6 +28,7 @@ async def check_subscriptions(bot: Bot, config: Config):
 
             print(days_remaining)
 
+
             if days_remaining == 0:
                 await bot.send_message(
                     subscription.user_id,
