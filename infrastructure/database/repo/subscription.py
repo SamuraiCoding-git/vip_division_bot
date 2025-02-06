@@ -340,3 +340,24 @@ class SubscriptionRepo(BaseRepo):
             return result.scalars().first()
         except SQLAlchemyError as e:
             raise Exception(f"Error fetching latest active subscription for user {user_id}: {e}")
+
+    async def expire_subscription(self, subscription_id: int) -> bool:
+        """
+        Marks a subscription as expired by setting 'is_recurrent' to False and 'status' to 'expired'.
+        :param subscription_id: The ID of the subscription to update.
+        :return: True if the update was successful, False if the subscription was not found.
+        """
+        try:
+            subscription = await self.session.get(Subscription, subscription_id)
+            if not subscription:
+                return False
+
+            subscription.is_recurrent = False
+            subscription.status = "expired"
+
+            await self.session.commit()
+            return True
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise Exception(f"Error expiring subscription with ID {subscription_id}: {e}")
+
