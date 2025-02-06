@@ -9,6 +9,7 @@ from aiohttp import web
 
 from tgbot.config import load_config
 from tgbot.utils.db_utils import get_repo
+from ф import phone_number
 
 # Конфигурация
 SECRET_KEY = 'd9d0503a2e263c392aa3397614c342113ac8998446913247d238398dcab1091c'
@@ -191,6 +192,9 @@ async def handle_request(request):
             start_date=datetime.now(),
             end_date=datetime.now() + timedelta(days=plan.duration)
         )
+
+        phone_number = form_data.get('phone_number') or form_data.get('customer_phone')
+
         payment = await repo.payments.update_payment(
             payment_id=payment.id,
             amount=int(float(form_data['sum'])),
@@ -198,7 +202,7 @@ async def handle_request(request):
             payment_method="card_ru",
             is_successful=True,
             binding_id=form_data.get('binding_id'),
-            phone_number=form_data['phone_number'] or form_data['customer_phone'],
+            phone_number=phone_number,
         )
 
         photo_id = PHOTO_ID_DICT.get(payment.subscription.plan_id)
