@@ -183,7 +183,7 @@ class PaymentRepo(BaseRepo):
                     Payment.user_id == user_id,
                     Payment.is_successful == True
                 )
-                .order_by(Payment.created_at.desc())
+                .order_by(Payment.id.desc())
                 .limit(1)
             )
             result = await self.session.execute(query)
