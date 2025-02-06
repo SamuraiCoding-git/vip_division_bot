@@ -126,6 +126,7 @@ def create(data, key, algo='sha256'):
 
 
 def process_payment(binding_id, client_id, sys, secret_key, api_url, order_sum):
+    print("process_payment")
     data = {
         "binding_id": binding_id,
         "client_id": client_id,
