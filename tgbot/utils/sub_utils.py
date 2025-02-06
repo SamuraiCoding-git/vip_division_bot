@@ -16,7 +16,6 @@ async def check_subscriptions(bot: Bot, config: Config):
     async with session_pool() as session:
         repo = RequestsRepo(session)
         subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
-        print(subscriptions)
         now = datetime.utcnow()
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -25,6 +24,7 @@ async def check_subscriptions(bot: Bot, config: Config):
 
         for subscription in subscriptions:
             payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
+            print(payment.binding_id)
             days_remaining = (subscription.end_date - now).days
 
             if days_remaining == 0:
