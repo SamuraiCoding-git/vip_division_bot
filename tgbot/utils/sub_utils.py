@@ -7,48 +7,44 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from infrastructure.database.repo.requests import RequestsRepo
 from infrastructure.database.setup import create_session_pool
 from tgbot.config import Config
+from tgbot.utils.db_utils import get_repo
 from tgbot.utils.payment_utils import process_payment
 
 
 async def check_subscriptions(bot: Bot, config: Config):
-    session_pool = await create_session_pool(config.db)
+    repo = await get_repo(config)
+    subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
+    now = datetime.utcnow()
 
-    async with session_pool() as session:
-        repo = RequestsRepo(session)
-        subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
-        now = datetime.utcnow()
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Моя подписка ✅", callback_data="my_subscription")]
+    ])
 
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Моя подписка ✅", callback_data="my_subscription")]
-        ])
-
-        for subscription in subscriptions:
-            payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
-            days_remaining = (subscription.end_date - now).days
+    for subscription in subscriptions:
+        payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
+        days_remaining = (subscription.end_date - now).days
 
 
-            if days_remaining <= 0:
-                try:
-                    await process_payment(
-                        payment.binding_id,
-                        subscription.user_id,
-                        config.misc.sys,
-                        config.payment.token,
-                        config.misc.payment_form_url,
-                        subscription.plan.discounted_price
-                    )
-                    await bot.send_message(subscription.user_id, "✅ Ваша подписка успешно продлена!",
-                                           reply_markup=keyboard)
+        if days_remaining <= 0:
+            try:
+                await process_payment(
+                    payment.binding_id,
+                    subscription.user_id,
+                    config.misc.sys,
+                    config.payment.token,
+                    config.misc.payment_form_url,
+                    subscription.plan.discounted_price
+                )
+                await bot.send_message(subscription.user_id, "✅ Ваша подписка успешно продлена!",
+                                       reply_markup=keyboard)
 
-                except Exception as e:
-                    print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
-                    subscription.is_recurrent = False
-                    subscription.status = "expired"
-                    await session.commit()
+            except Exception as e:
+                print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
+                await repo.subscriptions.expire_subscription(subscription.id)
 
-                    await send_failed_renewal_notification(bot, subscription.user_id)
+                await send_failed_renewal_notification(bot, subscription.user_id)
 
-                    await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
+                await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
 
 
 async def send_failed_renewal_notification(bot: Bot, user_id: int):
