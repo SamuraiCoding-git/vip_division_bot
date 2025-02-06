@@ -319,3 +319,24 @@ class SubscriptionRepo(BaseRepo):
         )
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def get_latest_active_subscription(self, user_id: int) -> Optional[Subscription]:
+        """
+        Retrieves the latest active subscription for a given user based on the highest end_date.
+        :param user_id: The ID of the user.
+        :return: The latest active Subscription object, or None if no active subscription is found.
+        """
+        try:
+            query = (
+                select(Subscription)
+                .filter(
+                    Subscription.user_id == user_id,
+                    Subscription.status == "active"
+                )
+                .order_by(Subscription.end_date.desc())
+                .limit(1)
+            )
+            result = await self.session.execute(query)
+            return result.scalars().first()
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching latest active subscription for user {user_id}: {e}")
