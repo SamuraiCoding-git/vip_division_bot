@@ -23,6 +23,7 @@ async def check_subscriptions(bot: Bot, config: Config):
         ])
 
         for subscription in subscriptions:
+            payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
             days_remaining = (subscription.end_date - now).days
 
             if days_remaining == 0:
@@ -34,7 +35,7 @@ async def check_subscriptions(bot: Bot, config: Config):
             if days_remaining <= 0:
                 try:
                     await process_payment(
-                        subscription.binding_id,
+                        payment.binding_id,
                         subscription.user_id,
                         config.misc.sys,
                         config.payment.token,

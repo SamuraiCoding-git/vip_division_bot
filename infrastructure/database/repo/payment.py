@@ -170,3 +170,25 @@ class PaymentRepo(BaseRepo):
         except SQLAlchemyError as e:
             raise Exception(f"Error counting payments: {e}")
 
+    async def get_latest_successful_payment(self, user_id: int) -> Optional[Payment]:
+        """
+        Retrieves the latest successful payment for a given user based on the most recent created_at timestamp.
+        :param user_id: The ID of the user.
+        :return: The latest successful Payment object, or None if no successful payment is found.
+        """
+        try:
+            query = (
+                select(Payment)
+                .filter(
+                    Payment.user_id == user_id,
+                    Payment.is_successful == True
+                )
+                .order_by(Payment.created_at.desc())
+                .limit(1)
+            )
+            result = await self.session.execute(query)
+            return result.scalars().first()
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching latest successful payment for user {user_id}: {e}")
+
+
