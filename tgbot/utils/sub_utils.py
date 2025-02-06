@@ -42,7 +42,6 @@ async def check_subscriptions(bot: Bot, config: Config):
                         config.misc.payment_form_url,
                         subscription.plan.discounted_price
                     )
-                    subscription.end_date += timedelta(days=subscription.plan.duration)
                     await session.commit()
                     await bot.send_message(subscription.user_id, "✅ Ваша подписка успешно продлена!",
                                            reply_markup=keyboard)
