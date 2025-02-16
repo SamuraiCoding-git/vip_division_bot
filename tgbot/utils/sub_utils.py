@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 
 import requests
@@ -119,6 +120,3 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
 
     except Exception as e:
         return f"Неизвестная ошибка: {str(e)}"
-
-if __name__ == "__main__":
-    asyncio.run(main())
