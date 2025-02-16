@@ -2,7 +2,9 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from sqlalchemy import select, func
 from sqlalchemy.exc import SQLAlchemyError
-from infrastructure.database.models import Subscription
+from sqlalchemy.orm import joinedload
+
+from infrastructure.database.models import Subscription, Payment
 from infrastructure.database.repo.base import BaseRepo
 
 
@@ -310,13 +312,26 @@ class SubscriptionRepo(BaseRepo):
         except ValueError as e:
             raise Exception(f"Invalid extension value: {e}")
 
-
     async def get_active_recurrent_subscriptions(self):
-        query = select(Subscription).filter(
-            Subscription.is_recurrent == True,
-            Subscription.status == "active",
-            Subscription.end_date >= datetime.utcnow()
+        # Подзапрос для проверки наличия подписок с end_date >= текущей даты
+        subquery = (
+            select(Subscription.id)
+            .filter(Subscription.end_date >= datetime.utcnow())
+            .exists()
         )
+
+        query = (
+            select(Subscription)
+            .join(Payment, Subscription.id == Payment.subscription_id)  # Джойн с Payment
+            .filter(
+                Subscription.is_recurrent == True,
+                Subscription.end_date < datetime.utcnow(),  # Проверяем, что подписка истекла
+                Payment.binding_id.isnot(None),  # binding_id не должен быть None
+                ~subquery  # Проверяем, что нет подписок с end_date >= текущей даты
+            )
+            .options(joinedload(Subscription.payments))  # Оптимизация загрузки
+        )
+
         result = await self.session.execute(query)
         return result.scalars().all()
 
@@ -360,4 +375,33 @@ class SubscriptionRepo(BaseRepo):
         except SQLAlchemyError as e:
             await self.session.rollback()
             raise Exception(f"Error expiring subscription with ID {subscription_id}: {e}")
+
+    async def extend_subscription_by_id(self, subscription_id: int, days: int) -> Optional[Subscription]:
+        """
+        Extends a subscription by adding a specified number of days.
+        :param subscription_id: The ID of the subscription to update.
+        :param days: The number of days to add to the subscription.
+        :return: The updated Subscription object, or None if the subscription is not found.
+        """
+        try:
+            # Fetch the subscription by ID
+            subscription = await self.session.get(Subscription, subscription_id)
+            if not subscription:
+                return None  # Subscription not found
+
+            # Ensure the subscription has a valid end date
+            if not subscription.end_date:
+                raise ValueError(f"Subscription {subscription_id} does not have an end_date set.")
+
+            # Extend the subscription by the given number of days
+            subscription.end_date += timedelta(days=days)
+
+            # Commit changes to the database
+            await self.session.commit()
+            return subscription
+        except SQLAlchemyError as e:
+            await self.session.rollback()
+            raise Exception(f"Error extending subscription with ID {subscription_id}: {e}")
+        except ValueError as e:
+            raise Exception(f"Invalid operation: {e}")
 

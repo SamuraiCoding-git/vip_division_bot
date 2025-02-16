@@ -4,8 +4,6 @@ import requests
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from infrastructure.database.repo.requests import RequestsRepo
-from infrastructure.database.setup import create_session_pool
 from tgbot.config import Config
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.payment_utils import process_payment
@@ -14,7 +12,6 @@ from tgbot.utils.payment_utils import process_payment
 async def check_subscriptions(bot: Bot, config: Config):
     repo = await get_repo(config)
     subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
-    print(subscriptions)
     now = datetime.utcnow()
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -28,14 +25,16 @@ async def check_subscriptions(bot: Bot, config: Config):
 
         if days_remaining <= 0:
             try:
-                await process_payment(
+                process_payment(
                     payment.binding_id,
                     subscription.user_id,
                     config.misc.sys,
                     config.payment.token,
                     config.misc.payment_form_url,
-                    subscription.plan.discounted_price
+                    payment.amount
                 )
+                plan = await repo.plans.select_plan(subscription.plan_id)
+                await repo.subscriptions.extend_subscription_by_id(subscription.id, plan.duration)
                 await bot.send_message(subscription.user_id, "✅ Ваша подписка успешно продлена!",
                                        reply_markup=keyboard)
 
@@ -43,9 +42,9 @@ async def check_subscriptions(bot: Bot, config: Config):
                 print(f"❌ Ошибка продления подписки {subscription.id}: {e}")
                 await repo.subscriptions.expire_subscription(subscription.id)
 
-                # await send_failed_renewal_notification(bot, subscription.user_id)
+                await send_failed_renewal_notification(bot, subscription.user_id)
 
-                # await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
+                await ban_user_from_channel_and_chat(bot, subscription.user_id, config)
 
 
 async def send_failed_renewal_notification(bot: Bot, user_id: int):
@@ -120,3 +119,6 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
 
     except Exception as e:
         return f"Неизвестная ошибка: {str(e)}"
+
+if __name__ == "__main__":
+    asyncio.run(main())
