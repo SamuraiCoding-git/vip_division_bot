@@ -95,6 +95,8 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
     subscription_days = await repo.subscriptions.get_combined_active_subscription_days(chat_id)
 
+    print(subscription_days)
+
     subscriptions_status = await repo.subscriptions.is_recurrent(chat_id)
 
     if subscription_days > 0:
