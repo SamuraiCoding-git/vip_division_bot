@@ -312,28 +312,30 @@ class SubscriptionRepo(BaseRepo):
         except ValueError as e:
             raise Exception(f"Invalid extension value: {e}")
 
-    async def get_active_recurrent_subscriptions(self):
-        # Подзапрос для проверки наличия подписок с end_date >= текущей даты
-        subquery = (
-            select(Subscription.id)
-            .filter(Subscription.end_date >= datetime.utcnow())
-            .exists()
+    async def get_recurrent_subscriptions(self):
+        # Query to get all subscriptions with is_recurrent == True, their associated Payment.binding_id,
+        # and ensuring Payment.binding_id is not None
+        stmt = (
+            select(Subscription, Payment.binding_id)  # Select Subscription and Payment.binding_id
+            .outerjoin(Payment, Subscription.id == Payment.subscription_id)  # Left join to get the Payment data
+            .where(Subscription.is_recurrent == True,
+                   Subscription.end_date < datetime.now(),
+                   Payment.binding_id.isnot(None))  # Filter for recurrent subscriptions where binding_id is not None
         )
 
-        query = (
-            select(Subscription)
-            .join(Payment, Subscription.id == Payment.subscription_id)  # Джойн с Payment
-            .filter(
-                Subscription.is_recurrent == True,
-                Subscription.end_date < datetime.utcnow(),  # Проверяем, что подписка истекла
-                Payment.binding_id.isnot(None),  # binding_id не должен быть None
-                ~subquery  # Проверяем, что нет подписок с end_date >= текущей даты
-            )
-            .options(joinedload(Subscription.payments))  # Оптимизация загрузки
-        )
+        # Execute the query asynchronously
+        result = await self.session.execute(stmt)
 
-        result = await self.session.execute(query)
-        return result.scalars().all()
+        # Fetch all results, returning a list of tuples (Subscription, binding_id)
+        subscriptions_with_payments = result.fetchall()
+
+        # Create a list of Subscription objects and add the binding_id as an attribute
+        subscriptions = []
+        for subscription, binding_id in subscriptions_with_payments:
+            subscription.binding_id = binding_id  # Dynamically attach the binding_id to the Subscription object
+            subscriptions.append(subscription)
+
+        return subscriptions
 
     async def get_latest_active_subscription(self, user_id: int) -> Optional[Subscription]:
         """

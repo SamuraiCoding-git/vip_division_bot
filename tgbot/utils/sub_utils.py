@@ -5,14 +5,14 @@ import requests
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from tgbot.config import Config
+from tgbot.config import Config, load_config
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.payment_utils import process_payment
 
 
 async def check_subscriptions(bot: Bot, config: Config):
     repo = await get_repo(config)
-    subscriptions = await repo.subscriptions.get_active_recurrent_subscriptions()
+    subscriptions = await repo.subscriptions.get_recurrent_subscriptions()
     now = datetime.utcnow()
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
