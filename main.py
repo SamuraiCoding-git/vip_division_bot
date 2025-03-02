@@ -165,6 +165,7 @@ async def handle_request(request):
             payment = await repo.payments.get_payment_by_phone_number(form_data['phone_number'])
             user = await repo.users.select_user(payment.user_id)
         else:
+            print(f"Client ID: {form_data['client_id']}")
             user = await repo.users.select_user(int(form_data['client_id']))
         if not user:
             return web.json_response({'error': 'User not found'}, status=404)
