@@ -25,6 +25,11 @@ subscription_router.callback_query.filter(IsPrivateFilter())
 @subscription_router.callback_query(TariffsCallbackData.filter())
 async def sub_tariffs(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: TariffsCallbackData, config: Config):
     repo = await get_repo(config)
+    await repo.users.get_or_create_user(
+        call.message.chat.id,
+        call.message.chat.full_name,
+        call.message.chat.username
+    )
     setting = await repo.settings.get_setting("Оплаты включены")
     data = await state.get_data()
     payments_opened = data.get("payments_opened")
