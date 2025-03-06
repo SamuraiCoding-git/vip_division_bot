@@ -19,6 +19,12 @@ start_router.callback_query.filter(IsPrivateFilter())
 
 @start_router.message(CommandStart(deep_link=True))
 async def user_deeplink(message: Message, command: CommandObject, config: Config, state: FSMContext):
+    repo = await get_repo(config)
+    await repo.users.get_or_create_user(
+        message.from_user.id,
+        message.from_user.full_name,
+        message.from_user.username
+    )
     deeplink_actions = {
         "9ae0a8989a14fb1263b255b24d8becf2": {
             "action": lambda: activate_payment(message, state),
