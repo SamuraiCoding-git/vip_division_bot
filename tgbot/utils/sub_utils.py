@@ -127,3 +127,6 @@ async def main():
     subscriptions = await repo.subscriptions.get_recurrent_subscriptions()
     for subscription in subscriptions:
         print(subscription.end_date)
+
+if __name__ == "__main__":
+    asyncio.run(main())

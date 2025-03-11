@@ -410,7 +410,7 @@ class SubscriptionRepo(BaseRepo):
                 raise ValueError(f"Subscription {subscription_id} does not have an end_date set.")
 
             # Extend the subscription by the given number of days
-            subscription.end_date += timedelta(days=days)
+            subscription.end_date = datetime.now() + timedelta(days=days)
             subscription.status = "active"
 
             # Commit changes to the database
