@@ -100,25 +100,23 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
     subscription = await repo.subscriptions.get_subscription_by_user_id(chat_id)
 
-    print(subscription.id)
-
     if subscription and subscription.end_date:
-        subscription_days = subscription.end_date - datetime.now()
+        subscription_days = (subscription.end_date - datetime.now()).days  # Только дни
     else:
-        subscription_days = timedelta(0)
-
-    print(subscription_days)
+        subscription_days = 0  # Если подписки нет
 
     subscriptions_status = await repo.subscriptions.is_recurrent(chat_id)
 
-    if subscription_days:
+    if subscription_days > 0:
         text = config.text.payment_success_message.replace("{days_remaining}", str(subscription_days))
         sent_message = await bot.send_message(chat_id=chat_id, text=text,
-                                              reply_markup=my_subscription_keyboard(state="menu",
-                                                                                    is_sub=True,
-                                                                                    chat_link=create_invite_link(config.misc.private_chat_id),
-                                                                                    channel_link=create_invite_link(config.misc.private_channel_id),
-                                                                                    is_recurrent=subscriptions_status))
+                                              reply_markup=my_subscription_keyboard(
+                                                  state="menu",
+                                                  is_sub=True,
+                                                  chat_link=create_invite_link(config.misc.private_chat_id),
+                                                  channel_link=create_invite_link(config.misc.private_channel_id),
+                                                  is_recurrent=subscriptions_status
+                                              ))
     else:
         text = config.text.payment_inactive_message
         sent_message = await bot.send_message(chat_id=chat_id, text=text, reply_markup=my_subscription_keyboard(state="menu"))
