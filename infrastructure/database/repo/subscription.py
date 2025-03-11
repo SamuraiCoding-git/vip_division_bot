@@ -23,15 +23,17 @@ class SubscriptionRepo(BaseRepo):
 
     async def get_subscription_by_user_id(self, user_id: int) -> Optional[Subscription]:
         """
-        Retrieves a subscription by its ID.
-        :param user_id: The ID of the subscription.
+        Retrieves a subscription by user ID.
+        :param user_id: The ID of the user.
         :return: Subscription object, or None if not found.
         """
         try:
-            subscription = await self.session.get(Subscription, user_id)
+            stmt = select(Subscription).where(Subscription.user_id == user_id)
+            result = await self.session.execute(stmt)
+            subscription = result.scalars().first()
             return subscription
         except SQLAlchemyError as e:
-            raise Exception(f"Error fetching subscription with ID {user_id}: {e}")
+            raise Exception(f"Error fetching subscription for user ID {user_id}: {e}")
 
     async def get_all_subscriptions(self) -> List[Subscription]:
         """

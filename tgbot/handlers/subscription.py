@@ -100,6 +100,8 @@ async def my_subscription(event, state: FSMContext, bot: Bot, config: Config):
 
     subscription = await repo.subscriptions.get_subscription_by_user_id(chat_id)
 
+    print(subscription.id)
+
     if subscription and subscription.end_date:
         subscription_days = subscription.end_date - datetime.now()
     else:
