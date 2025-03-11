@@ -21,6 +21,18 @@ class SubscriptionRepo(BaseRepo):
         except SQLAlchemyError as e:
             raise Exception(f"Error fetching subscription with ID {subscription_id}: {e}")
 
+    async def get_subscription_by_user_id(self, user_id: int) -> Optional[Subscription]:
+        """
+        Retrieves a subscription by its ID.
+        :param user_id: The ID of the subscription.
+        :return: Subscription object, or None if not found.
+        """
+        try:
+            subscription = await self.session.get(Subscription, user_id)
+            return subscription
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching subscription with ID {user_id}: {e}")
+
     async def get_all_subscriptions(self) -> List[Subscription]:
         """
         Retrieves all subscriptions.
