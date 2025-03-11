@@ -411,6 +411,7 @@ class SubscriptionRepo(BaseRepo):
 
             # Extend the subscription by the given number of days
             subscription.end_date += timedelta(days=days)
+            subscription.status = "active"
 
             # Commit changes to the database
             await self.session.commit()
