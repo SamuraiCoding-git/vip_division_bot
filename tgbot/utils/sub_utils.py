@@ -120,3 +120,10 @@ def get_transaction_confirmations(tx_hash, usd_price, tron_wallet):
 
     except Exception as e:
         return f"Неизвестная ошибка: {str(e)}"
+
+async def main():
+    config = load_config(".env")
+    repo = await get_repo(config)
+    subscriptions = await repo.subscriptions.get_recurrent_subscriptions()
+    for subscription in subscriptions:
+        print(subscription.end_date)
