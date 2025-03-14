@@ -93,10 +93,10 @@ def setup_logging():
     logger.info("Starting bot")
 
 
-# async def start_scheduler(bot: Bot, config: Config):
-#     scheduler = AsyncIOScheduler()
-#     scheduler.add_job(check_subscriptions, "cron", hour=12, minute=8, args=[bot, config])
-#     scheduler.start()
+async def start_scheduler(bot: Bot, config: Config):
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_subscriptions, "cron", hour=13, minute=30, args=[bot, config])
+    scheduler.start()
 
 def get_storage(config):
     """
@@ -153,7 +153,7 @@ async def main():
     register_global_middlewares(dp, config, scheduler, session_pool)
 
     await create_session_pool(config.db)
-    # await start_scheduler(bot, config)
+    await start_scheduler(bot, config)
     await set_bot_commands(bot)
     await on_startup(bot, admin_ids)
     await dp.start_polling(bot)
