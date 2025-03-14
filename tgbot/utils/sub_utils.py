@@ -30,7 +30,8 @@ async def check_subscriptions(bot: Bot, config: Config):
     ])
 
     for subscription in subscriptions:
-        if not is_user_in_channel(subscription.user_id, bot, int(config.misc.private_channel_id)):
+        status = await is_user_in_channel(subscription.user_id, bot, int(config.misc.private_channel_id))
+        if not status:
             continue
         payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
         days_remaining = (subscription.end_date - now).days
