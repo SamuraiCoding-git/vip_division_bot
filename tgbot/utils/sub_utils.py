@@ -3,11 +3,21 @@ from datetime import datetime, timedelta
 
 import requests
 from aiogram import Bot
+from aiogram.enums import ChatMemberStatus
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from tgbot.config import Config, load_config
 from tgbot.utils.db_utils import get_repo
 from tgbot.utils.payment_utils import process_payment
+
+
+async def is_user_in_channel(user_id: int, bot: Bot, CHANNEL_ID: int) -> bool:
+    try:
+        chat_member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
+        return chat_member.status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR]
+    except Exception as e:
+        print(f"Ошибка: {e}")
+        return False
 
 
 async def check_subscriptions(bot: Bot, config: Config):
@@ -20,6 +30,8 @@ async def check_subscriptions(bot: Bot, config: Config):
     ])
 
     for subscription in subscriptions:
+        if not is_user_in_channel(subscription.user_id, bot, int(config.misc.private_channel_id)):
+            continue
         payment = await repo.payments.get_latest_successful_payment(subscription.user_id)
         days_remaining = (subscription.end_date - now).days
 
