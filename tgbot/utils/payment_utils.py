@@ -147,7 +147,7 @@ def process_payment(binding_id, client_id, sys, secret_key, api_url, order_sum):
         return response_data
     except Exception as e:
         print(e)
-        return {"success": False, "error": str(e)}
+        raise Exception
 
 def generate_qr_code(link: str):
     unique_filename = f"qr_code_{uuid.uuid4().hex}.png"
