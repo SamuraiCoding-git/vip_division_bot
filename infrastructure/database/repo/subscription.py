@@ -446,3 +446,29 @@ class SubscriptionRepo(BaseRepo):
         except SQLAlchemyError as e:
             raise Exception(f"Error fetching non-recurrent expired users: {e}")
 
+    async def get_subscription_count_by_plan(self) -> dict:
+        """
+        Retrieves the count of subscriptions for each plan_id (from 1 to 4).
+        :return: A dictionary where keys are plan_ids, and values are the subscription count.
+        """
+        try:
+            # Запрос для подсчёта подписок по каждому plan_id
+            query = select(Subscription.plan_id, func.count(Subscription.id).label('subscription_count')) \
+                .where(Subscription.plan_id.in_([1, 2, 3, 4])) \
+                .group_by(Subscription.plan_id)
+
+            result = await self.session.execute(query)
+            plan_distribution = result.fetchall()
+
+            # Формируем словарь для каждого plan_id и его соответствующего количества подписок
+            distribution = {plan_id: count for plan_id, count in plan_distribution}
+
+            # Добавляем в словарь plan_id, если они не были найдены в базе (если подписок по какому-то плану нет)
+            for plan_id in [1, 2, 3, 4]:
+                if plan_id not in distribution:
+                    distribution[plan_id] = 0
+
+            return distribution
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching subscription count by plan: {e}")
+

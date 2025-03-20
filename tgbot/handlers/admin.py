@@ -34,11 +34,17 @@ async def admin_start(message: Message, state: FSMContext, bot: Bot, config: Con
     users = await repo.users.count_users()
     subscriptions = await repo.subscriptions.count_unique_subscription_users()
     exp_subs = await repo.subscriptions.get_expired_users()
+    plan_subs = await repo.subscriptions.get_subscription_count_by_plan()
+    print(plan_subs)
     text = (
         f"Всего пользователей: {users}\n",
         f"Купившие подписку: {subscriptions}\n",
         f"Некупившие подписку: {users - subscriptions}\n",
-        f"Непродлившие подписку: {len(exp_subs)}"
+        f"Непродлившие подписку: {len(exp_subs)}\n",
+        f"1 месяц: {plan_subs.get(1)}",
+        f"3 месяца: {plan_subs.get(2)}",
+        f"6 месяцев: {plan_subs.get(3)}",
+        f"9 месяцев: {plan_subs.get(4)}"
     )
     sent_message = await message.answer("\n".join(text), reply_markup=admin_keyboard())
     await delete_messages(bot, message.from_user.id, state, [sent_message.message_id])
