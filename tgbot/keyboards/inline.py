@@ -445,12 +445,12 @@ def admin_keyboard():
         [
             InlineKeyboardButton(text="Настройки", callback_data="admin_settings")
         ],
-        [
-            InlineKeyboardButton(text="Статус пользователя", switch_inline_query_current_chat="")
-        ],
-        [
-            InlineKeyboardButton(text="Рассылка", callback_data="mailing")
-        ]
+        # [
+        #     InlineKeyboardButton(text="Статус пользователя", switch_inline_query_current_chat="")
+        # ],
+        # [
+        #     InlineKeyboardButton(text="Рассылка", callback_data="mailing")
+        # ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard

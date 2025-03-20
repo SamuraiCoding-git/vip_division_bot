@@ -29,8 +29,18 @@ admin_router.callback_query.filter(AdminFilter())
 from aiogram.types import Message
 
 @admin_router.message(Command("admin"))
-async def admin_start(message: Message, state: FSMContext, bot: Bot):
-    sent_message = await message.answer("Панель админа:", reply_markup=admin_keyboard())
+async def admin_start(message: Message, state: FSMContext, bot: Bot, config: Config):
+    repo = await get_repo(config)
+    users = await repo.users.count_users()
+    subscriptions = await repo.subscriptions.count_unique_subscription_users()
+    exp_subs = await repo.subscriptions.get_expired_users()
+    text = (
+        f"Всего пользователей: {users}\n",
+        f"Купившие подписку: {subscriptions}\n"
+        f"Некупившие подписку: {users - subscriptions}\n"
+        f"Непродлившие подписку: {exp_subs}"
+    )
+    sent_message = await message.answer("\n".join(text), reply_markup=admin_keyboard())
     await delete_messages(bot, message.from_user.id, state, [sent_message.message_id])
 
 @admin_router.message(F.text.startswith("User Details:"))

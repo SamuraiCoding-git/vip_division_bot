@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import select, update, literal, and_, not_, text, cast, String
+from sqlalchemy import select, update, literal, and_, not_, text, cast, String, func
 from sqlalchemy.dialects.postgresql import insert
 
 from infrastructure.database.models import User, Order
@@ -63,7 +63,7 @@ class UserRepo(BaseRepo):
         # Commit the transaction
         await self.session.commit()
 
-        # Return the updated user object
+        # Return the updated user objecxt
         return result.scalar_one()
 
     async def update_recurrence(self, user_id: int, is_recurrent: bool) -> User:
@@ -145,3 +145,8 @@ class UserRepo(BaseRepo):
         query = select(User).where(cast(User.id, String).like(f"{id_prefix}%"))
         result = await self.session.execute(query)
         return result.scalars().all()
+
+    async def count_users(self) -> int:
+        query = select(func.count()).select_from(User)
+        result = await self.session.execute(query)
+        return result.scalar_one()

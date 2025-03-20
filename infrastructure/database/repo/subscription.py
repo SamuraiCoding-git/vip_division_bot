@@ -422,3 +422,27 @@ class SubscriptionRepo(BaseRepo):
         except ValueError as e:
             raise Exception(f"Invalid operation: {e}")
 
+    async def count_unique_subscription_users(self) -> int:
+        query = select(func.count(func.distinct(Subscription.user_id)))
+        result = await self.session.execute(query)
+        return result.scalar_one()
+
+    async def get_expired_users(self) -> List[int]:
+        """
+        Retrieves user IDs of all non-recurrent subscriptions that have expired.
+        :return: List of user IDs.
+        """
+        try:
+            query = (
+                select(Subscription.user_id)
+                .where(
+                    Subscription.is_recurrent == False,
+                    Subscription.end_date < datetime.utcnow()
+                )
+                .distinct()
+            )
+            result = await self.session.execute(query)
+            return result.scalars().all()
+        except SQLAlchemyError as e:
+            raise Exception(f"Error fetching non-recurrent expired users: {e}")
+
