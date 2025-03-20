@@ -36,9 +36,9 @@ async def admin_start(message: Message, state: FSMContext, bot: Bot, config: Con
     exp_subs = await repo.subscriptions.get_expired_users()
     text = (
         f"Всего пользователей: {users}\n",
-        f"Купившие подписку: {subscriptions}\n"
-        f"Некупившие подписку: {users - subscriptions}\n"
-        f"Непродлившие подписку: {exp_subs}"
+        f"Купившие подписку: {subscriptions}\n",
+        f"Некупившие подписку: {users - subscriptions}\n",
+        f"Непродлившие подписку: {len(exp_subs)}"
     )
     sent_message = await message.answer("\n".join(text), reply_markup=admin_keyboard())
     await delete_messages(bot, message.from_user.id, state, [sent_message.message_id])
