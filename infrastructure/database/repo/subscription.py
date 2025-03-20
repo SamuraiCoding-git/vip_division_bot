@@ -454,7 +454,7 @@ class SubscriptionRepo(BaseRepo):
         try:
             # Запрос для подсчёта подписок по каждому plan_id
             query = select(Subscription.plan_id, func.count(Subscription.id).label('subscription_count')) \
-                .where(Subscription.plan_id.in_([1, 2, 3, 4])) \
+                .where(Subscription.plan_id.in_([1, 2, 3, 4]), Subscription.status == "active") \
                 .group_by(Subscription.plan_id)
 
             result = await self.session.execute(query)
